@@ -33,7 +33,7 @@ void setup() {
 
   //pinMode(DATA_PIN, OUTPUT);
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(125);
+  FastLED.setBrightness(10);
 }
 
 void paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_speed, float wave_width, CRGB color)
@@ -55,12 +55,12 @@ void paint_wave(unsigned long current_millis, unsigned long start_millis, float 
   for(int n=first_LED;n<=last_LED;n++)
   {
     float x = ((float)n-first_x);
-    //float x = ((float)n-first_x);
     float x_percent = x/wave_width;
     uint8_t xbyte = round(x_percent*MAX_BYTE);
     uint8_t dim_factor = cos8(xbyte);
 
-    leds[n] = color.fadeLightBy(dim_factor);
+    leds[n] = color;
+    leds[n].fadeLightBy(dim_factor);
     //leds[n] = color; //This works perfectly, so the problem is with dimming.
 
     Serial.print((String)dim_factor + ", ");
@@ -70,7 +70,7 @@ void paint_wave(unsigned long current_millis, unsigned long start_millis, float 
 
 unsigned long start_millis=5000;
 float wave_speed = 5;
-float wave_width=10;
+float wave_width=NUM_LEDS;
 int test=0;
 void loop() {
   unsigned long current_time = millis();
