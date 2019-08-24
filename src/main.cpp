@@ -18,7 +18,8 @@
 
 // This is an array of leds.  One item for each led in your strip.
 CRGB leds[NUM_LEDS];
-LEDSet2D ledset(leds,leds+NUM_LEDS);
+LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
+LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -53,7 +54,8 @@ void loop() {
   {
     leds[n] = CRGB::Black;
   }
-  ledset.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+  ledset_1.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+  ledset_2.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
   //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
 
   FastLED.show();

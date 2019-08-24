@@ -1,18 +1,35 @@
 #include "LEDGraphics.h"
 
-LEDSet2D::LEDSet2D(CRGB* start_led, CRGB* stop_led)
+LEDSet2D::LEDSet2D(CRGB* led_array, unsigned int total_LEDS, unsigned int first_LED, unsigned int last_LED, bool reversed)
 {
-  short delta=1;
+  CRGB* start_led = led_array+first_LED;
+  CRGB* stop_led = led_array+last_LED;
+  CRGB* led_last = led_array+total_LEDS;
+  CRGB* next=start_led;
+  while(next!=stop_led)
+  {
+    this->leds.push_back(next);
+
+    if(reversed)
+    {
+        next--;
+        if(next<led_array)
+        {
+          next=led_last;
+        }
+    }
+    else
+    {
+        next++;
+        if(next>led_last)
+        {
+        next=led_array;
+        }
+    }
+  }
+  this->leds.push_back(stop_led);
+
   unsigned short count=abs(stop_led-start_led);
-  this->leds.resize(count);
-  if(start_led>stop_led)
-  {
-      delta=-1;
-  }
-  for(int n=0;n<count;n++)
-  {
-    this->leds[n]=start_led+n;
-  }
 }
 
 void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, CRGB color)
