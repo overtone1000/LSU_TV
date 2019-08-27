@@ -1,8 +1,8 @@
-// Use if you want to force the software SPI subsystem to be used for some reason (generally, you don't)
-// #define FASTLED_FORCE_SOFTWARE_SPI
-// Use if you want to force non-accelerated pin access (hint: you really don't, it breaks lots of things)
-// #define FASTLED_FORCE_SOFTWARE_SPI
-// #define FASTLED_FORCE_SOFTWARE_PINS
+#include <ESP8266WiFi.h>
+#include <fauxmoESP.h>
+#include <WiFiCredentials.h>
+
+fauxmoESP fauxmo;
 
 #define FASTLED_ESP8266_RAW_PIN_ORDER
 #include "LEDGraphics/LEDGraphics.h"
@@ -21,16 +21,35 @@ CRGB leds[NUM_LEDS];
 LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
 LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
 
+String devname = "Go Tigers";
+
+bool showleds = false;
+
 // This function sets up the ledsand tells the controller about them
 void setup() {
 	// sanity check delay - allows reprogramming if accidently blowing power w/leds
   delay(2000);
   Serial.begin(74880); //This is the default C++ what happens if you delete a member of an arrayhttps://docs.google.com/dCocument/d/1DzxBngHUOFZhpleMMP3qco2PPNh6JigrA3S00HgfX0Q/editefault boot output, so errors can be seen
 
+  WiFi.begin(SSID, WFPASS);
 
   //pinMode(DATA_PIN, OUTPUT);
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(120);
+
+  fauxmo.addDevice(devname.c_str());
+
+  fauxmo.setPort(80); // required for gen3 devices
+  fauxmo.enable(true);
+
+  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
+      String thisdev(device_name);
+      if(thisdev.equals(devname))
+      {
+        Serial.println("Device " + devname + " is " + (String)state);
+        showleds=state;
+      }
+  });
 }
 
 
@@ -40,13 +59,15 @@ float wave_width=NUM_LEDS/2;
 float wave_start_mid = ((float)NUM_LEDS)/2.0F;
 int test=0;
 void loop() {
+  fauxmo.handle();
+
   unsigned long current_time = millis();
   float passed = (current_time-start_millis)*wave_speed/1000.0F;
   float total = NUM_LEDS+wave_width;
   if(passed>total)
   {
-    Serial.println((String)passed + "/" + (String)total);
-    Serial.println("Restarting wave.");
+    //Serial.println((String)passed + "/" + (String)total);
+    //Serial.println("Restarting wave.");
     start_millis=current_time;
   }
 
@@ -54,10 +75,13 @@ void loop() {
   {
     leds[n] = CRGB::Black;
   }
-  ledset_1.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
-  ledset_2.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
-  //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
 
+  if(showleds)
+  {
+    ledset_1.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+    ledset_2.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+    //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
+  }
   FastLED.show();
   delay(100);
 }
