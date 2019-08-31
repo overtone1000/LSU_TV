@@ -6,7 +6,7 @@ namespace LEDGraphics
   {
     for(int n=0;n<3;n++)
     {
-      (*pixel)[n]=color[n]*alpha + (*pixel)[n]*(1.0f-alpha);
+      (*pixel)[n]=color[n]*magnitude + (*pixel)[n]*(1.0f-magnitude);
     }
   }
 
@@ -14,7 +14,7 @@ namespace LEDGraphics
   {
     for(int n=0;n<3;n++)
     {
-      (*pixel)[n]+=color[n];
+      (*pixel)[n]+=color[n]*magnitude;
     }
   }
 
@@ -50,7 +50,7 @@ namespace LEDGraphics
     unsigned short count=abs(stop_led-start_led);
   }
 
-  void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, CRGB color)
+  void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
   {
     //wave_speed is LEDs per second
     //wave_width is LEDs
@@ -73,8 +73,10 @@ namespace LEDGraphics
       uint8_t xbyte = round(x_percent*MAX_BYTE);
       uint8_t dim_factor = cos8(xbyte);
 
-      *(leds[n]) = color;
-      leds[n]->fadeLightBy(dim_factor);
+      brush->SetMagnitude((float)(MAX_BYTE-dim_factor)/(float)(MAX_BYTE));
+      brush->paint(leds[n]);
+      //*(leds[n]) = color;
+      //leds[n]->fadeLightBy(dim_factor);
       //leds[n] = color; //This works perfectly, so the problem is with dimming.
 
       Serial.print((String)dim_factor + ", ");
