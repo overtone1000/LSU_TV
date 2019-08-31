@@ -18,8 +18,8 @@ fauxmoESP fauxmo;
 
 // This is an array of leds.  One item for each led in your strip.
 CRGB leds[NUM_LEDS];
-LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
-LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
+LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
+LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
 
 String devname = "Go Tigers";
 
@@ -58,6 +58,7 @@ float wave_speed = 15;
 float wave_width=NUM_LEDS/2;
 float wave_start_mid = ((float)NUM_LEDS)/2.0F;
 int test=0;
+
 void loop() {
   fauxmo.handle();
 
@@ -71,17 +72,23 @@ void loop() {
     start_millis=current_time;
   }
 
+  LEDGraphics::AddBrush redbrush(CRGB::Red);
+  LEDGraphics::AddBrush bluebrush(CRGB::Blue);
+
   for(int n=0;n<NUM_LEDS;n++)
   {
     leds[n] = CRGB::Black;
+    redbrush.paint(leds+n);
+    bluebrush.paint(leds+n);
   }
 
   if(showleds)
   {
-    ledset_1.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
-    ledset_2.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+    //ledset_1.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
+    //ledset_2.paint_wave(current_time,start_millis,0,wave_speed,wave_width,CRGB::Purple);
     //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
   }
+
   FastLED.show();
   delay(100);
 }
