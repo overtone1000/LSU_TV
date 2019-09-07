@@ -23,9 +23,21 @@ CRGB leds[NUM_LEDS];
 LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,30,false);
 LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,0,true);
 
-String devname = "Go Tigers";
+LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,30,21,true);
+LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,20,11,true);
+LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,10,0,true);
 
-bool showleds = true;
+String dev_gotigers = "Go Tigers";
+String dev_merica = "Merica";
+
+enum Mode
+{
+  tigers=1,
+  merica=2
+};
+
+Mode mode = merica;
+bool showleds = false;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -39,18 +51,25 @@ void setup() {
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(60);
 
-  fauxmo.addDevice(devname.c_str());
+  fauxmo.addDevice(dev_gotigers.c_str());
+  fauxmo.addDevice(dev_merica.c_str());
 
   fauxmo.setPort(80); // required for gen3 devices
   fauxmo.enable(true);
 
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
-      if(thisdev.equals(devname))
+      showleds=state;
+      String modestr = (String)device_name;
+      if(modestr.equals(dev_gotigers))
       {
-        Serial.println("Device " + devname + " is " + (String)state);
-        showleds=state;
+        mode=Mode::tigers;
       }
+      else if(modestr.equals(dev_merica))
+      {
+        mode=Mode::merica;
+      }
+      Serial.println("Device " + modestr + " is " + (String)state);
   });
 }
 
@@ -82,11 +101,19 @@ struct Wave
   }
 };
 
-Wave w1(5000,1.5,NUM_LEDS/2,((float)NUM_LEDS));
+Wave w1(5000,4,NUM_LEDS,((float)NUM_LEDS));
 Wave w2(5000,15,NUM_LEDS/4,((float)NUM_LEDS));
+
+Wave m1(5000,15,NUM_LEDS/3,((float)10));
+Wave m2(5000,15,NUM_LEDS/3,((float)10));
+Wave m3(5000,15,NUM_LEDS/3,((float)10));
 
 LEDGraphics::BlendBrush purple(CRGB::Purple, 1.0f);
 LEDGraphics::BlendBrush yellow(CRGB::Yellow, 1.0f);
+
+LEDGraphics::BlendBrush red(CRGB::Red,1.0f);
+LEDGraphics::BlendBrush white(CRGB::White,1.0f);
+LEDGraphics::BlendBrush blue(CRGB::Blue,1.0f);
 
 void loop() {
   fauxmo.handle();
@@ -100,10 +127,24 @@ void loop() {
 
   if(showleds)
   {
-    w1.CheckReset(current_time);
-    w2.CheckReset(current_time);
-    ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
-    ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
+    switch(mode)
+    {
+      case Mode::tigers:
+        w1.CheckReset(current_time);
+        w2.CheckReset(current_time);
+        ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
+        ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
+        break;
+      case Mode::merica:
+        m1.CheckReset(current_time);
+        m2.CheckReset(current_time);
+        m3.CheckReset(current_time);
+        ledset_m1.paint_wave(current_time,m1.start_millis,0,m1.speed,m1.width,&red);
+        ledset_m2.paint_wave(current_time,m2.start_millis,0,m2.speed,m2.width,&white);
+        ledset_m3.paint_wave(current_time,m3.start_millis,0,m3.speed,m3.width,&blue);
+        break;
+    }
+
 
     //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
   }
