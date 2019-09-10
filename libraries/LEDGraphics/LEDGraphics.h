@@ -2,7 +2,8 @@
 #define LEDGraphics_h
 
 #include <FastLED.h>
-#include <cmath>
+//#include <cmath>
+#include <math.h>
 
 #define MAX_BYTE 255
 

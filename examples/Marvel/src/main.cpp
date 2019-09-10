@@ -1,11 +1,4 @@
-#include <ESP8266WiFi.h>
-#include <fauxmoESP.h>
-#include <WiFiCredentials.h>
-
-fauxmoESP fauxmo;
-
-#define FASTLED_ESP8266_RAW_PIN_ORDER
-#include "LEDGraphics/LEDGraphics.h"
+#include <LEDGraphics.h>
 
 // How many leds are in the strip?
 #define NUM_LEDS 30
@@ -45,32 +38,9 @@ void setup() {
   delay(2000);
   Serial.begin(74880); //This is the default C++ what happens if you delete a member of an arrayhttps://docs.google.com/dCocument/d/1DzxBngHUOFZhpleMMP3qco2PPNh6JigrA3S00HgfX0Q/editefault boot output, so errors can be seen
 
-  WiFi.begin(SSID, WFPASS);
-
   //pinMode(DATA_PIN, OUTPUT);
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(60);
-
-  fauxmo.addDevice(dev_gotigers.c_str());
-  fauxmo.addDevice(dev_merica.c_str());
-
-  fauxmo.setPort(80); // required for gen3 devices
-  fauxmo.enable(true);
-
-  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
-      String thisdev(device_name);
-      showleds=state;
-      String modestr = (String)device_name;
-      if(modestr.equals(dev_gotigers))
-      {
-        mode=Mode::tigers;
-      }
-      else if(modestr.equals(dev_merica))
-      {
-        mode=Mode::merica;
-      }
-      Serial.println("Device " + modestr + " is " + (String)state);
-  });
 }
 
 struct Wave
@@ -116,8 +86,6 @@ LEDGraphics::BlendBrush white(CRGB::White,1.0f);
 LEDGraphics::BlendBrush blue(CRGB::Blue,1.0f);
 
 void loop() {
-  fauxmo.handle();
-
   unsigned long current_time = millis();
 
   for(int n=0;n<NUM_LEDS;n++)

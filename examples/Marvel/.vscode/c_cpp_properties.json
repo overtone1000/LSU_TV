@@ -1,0 +1,81 @@
+{
+    "configurations": [
+        {
+            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/examples/Marvel/include",
+                "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/examples/Marvel/src",
+                "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/libraries/LEDGraphics",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/FastLED-3.3.0",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/cores/arduino",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/variants/flora",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/ ..",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/DallasTemperature",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/EnableInterrupt",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/EnableInterrupt/utility",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/MemoryFree",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/OneWire",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/RF24",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/RF24/utility",
+                "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/libraries",
+                "/home/tyler/.platformio/lib/FauxmoESP_ID1303/src",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src",
+                "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/Wire/src",
+                "/home/tyler/.platformio/packages/tool-unity",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/examples/Marvel/include",
+                    "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/examples/Marvel/src",
+                    "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/libraries/LEDGraphics",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/FastLED-3.3.0",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/cores/arduino",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/variants/flora",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/ ..",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/DallasTemperature",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/EnableInterrupt",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/EnableInterrupt/utility",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/MemoryFree",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/OneWire",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/RF24",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/RF24/utility",
+                    "/home/tyler/Dropbox/My Programs/PlatformIO/Libraries/Third Party/libraries",
+                    "/home/tyler/.platformio/lib/FauxmoESP_ID1303/src",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src",
+                    "/home/tyler/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/Wire/src",
+                    "/home/tyler/.platformio/packages/tool-unity",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=40003",
+                "ARDUINO_AVR_FLORA8",
+                "F_CPU=8000000L",
+                "ARDUINO_ARCH_AVR",
+                "ARDUINO=10805",
+                "USB_VID=0x239A",
+                "USB_PID=0x8004",
+                "USB_PRODUCT=\"Adafruit Flora\"",
+                "USB_MANUFACTURER=\"Adafruit\"",
+                "__AVR_ATmega32U4__",
+                ""
+            ],
+            "intelliSenseMode": "clang-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "\"/home/tyler/.platformio/packages/toolchain-atmelavr/bin/avr-gcc\" -mmcu=atmega32u4"
+        }
+    ],
+    "version": 4
+}

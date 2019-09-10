@@ -1,2 +1,2 @@
-# LSU_TV
-This is a PlatformIO sketch using Arduino architecture for the ESP8266 to drive NeoPixels on a TV.
+# Neopixel Graphics
+This is a PlatformIO library bast on the FastLED library to abstract rendering methods and implement typical effects.
