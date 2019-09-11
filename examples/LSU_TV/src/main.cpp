@@ -37,7 +37,7 @@ enum Mode
 };
 
 Mode mode = merica;
-bool showleds = false;
+bool showleds = true;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -45,12 +45,19 @@ void setup() {
   delay(2000);
   Serial.begin(74880); //This is the default C++ what happens if you delete a member of an arrayhttps://docs.google.com/dCocument/d/1DzxBngHUOFZhpleMMP3qco2PPNh6JigrA3S00HgfX0Q/editefault boot output, so errors can be seen
 
+  Serial.println("Test LED build.");
+  LEDGraphics::LEDSet2D testset(leds,NUM_LEDS,0,15,false);
+  LEDGraphics::LEDSet2D testset2(leds,NUM_LEDS,15,0,true);
+
+  Serial.println("Starting WiFi for " + (String)SSID);
   WiFi.begin(SSID, WFPASS);
 
   //pinMode(DATA_PIN, OUTPUT);
+  Serial.println("Adding LEDs");
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(60);
 
+  Serial.println("Configuring Fauxmo");
   fauxmo.addDevice(dev_gotigers.c_str());
   fauxmo.addDevice(dev_merica.c_str());
 
