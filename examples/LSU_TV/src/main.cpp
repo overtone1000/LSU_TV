@@ -116,7 +116,7 @@ void loop() {
         //ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
         break;
       case Mode::merica:
-        m1.Paint(current_time,&ledset_m1,&red);
+        m1.Paint(current_time,&ledset_m1,&red); 
         m2.Paint(current_time,&ledset_m2,&white); 
         m3.Paint(current_time,&ledset_m3,&blue); 
         //m1.CheckReset(current_time);
