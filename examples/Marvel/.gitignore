@@ -3,6 +3,3 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-/src/Certificate/key.h
-/src/Certificate/x509.h
-/src/WiFiCredentials.h

@@ -62,35 +62,57 @@ namespace LEDGraphics
     delete[] temp_leds;
   }
 
-  void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
+  //void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
+  void Wave::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
   {
     //wave_speed is LEDs per second
     //wave_width is LEDs
+    CheckReset(current_millis);
 
-    float last_x = wave_speed*((float)(current_millis-start_millis))/1000.0F;
-    float first_x = last_x-wave_width;
+    float last_x = speed*((float)(current_millis-start_millis))/1000.0F;
+    float first_x = last_x-width;
 
     int last_LED = floor(last_x);
     int first_LED = ceil(first_x);
 
-    if(last_LED>=this->led_count){last_LED=this->led_count-1;}
+    if(last_LED>=led_set->ledCount()){last_LED=led_set->ledCount()-1;}
     if(first_LED<0){first_LED=0;}
 
     for(int n=first_LED;n<=last_LED;n++)
     {
       float x = ((float)n-first_x);
-      float x_percent = x/wave_width;
+      float x_percent = x/width;
       uint8_t xbyte = round(x_percent*MAX_BYTE);
       uint8_t dim_factor = cos8(xbyte);
 
       brush->SetMagnitude((float)(MAX_BYTE-dim_factor)/(float)(MAX_BYTE));
-      brush->paint(leds[n]);
+      brush->paint(led_set->ledArray()[n]);
       //*(leds[n]) = color;
       //leds[n]->fadeLightBy(dim_factor);
       //leds[n] = color; //This works perfectly, so the problem is with dimming.
 
-      Serial.print((String)dim_factor + ", ");
+      //Serial.print((String)dim_factor + ", ");
     }
-    Serial.println();
+    //Serial.println();
+  }
+
+  Wave::Wave(unsigned long start_millis, float speed, float width, float LED_count)
+  {
+    this->start_millis=start_millis;
+    this->speed=speed;
+    this->width=width;
+    this->LED_count = LED_count;
+  }
+
+  void Wave::CheckReset(unsigned long current_time)
+  {
+    float passed = (current_time-start_millis)*speed/1000.0F;
+    float total = LED_count+width;
+    if(passed>total)
+    {
+      //Serial.println((String)passed + "/" + (String)total);
+      //Serial.println("Restarting wave.");
+      start_millis=current_time;
+    }
   }
 }

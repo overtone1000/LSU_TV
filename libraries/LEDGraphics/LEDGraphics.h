@@ -47,10 +47,26 @@ namespace LEDGraphics
   public:
     LEDSet2D(CRGB* led_array, unsigned int total_LEDS, unsigned int first_LED, unsigned int last_LED, bool reversed);
     ~LEDSet2D();
-    void paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush);
+    //void paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush);
+    CRGB** ledArray(){return leds;}
+    const int ledCount(){return led_count;}
   private:
     CRGB** leds;
     int led_count=0;
+  };
+
+  class Wave
+  {
+    private:
+    unsigned long start_millis;
+    float speed;
+    float width;
+    float LED_count;
+    void CheckReset(unsigned long current_time);
+
+    public:
+    Wave(unsigned long start_millis, float speed, float width, float LED_count);
+    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
   };
 }
 

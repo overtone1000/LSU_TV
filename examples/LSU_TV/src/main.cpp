@@ -80,40 +80,12 @@ void setup() {
   });
 }
 
-struct Wave
-{
-  unsigned long start_millis;
-  float speed;
-  float width;
-  float LED_count;
+LEDGraphics::Wave w1(5000,4,NUM_LEDS,((float)NUM_LEDS));
+LEDGraphics::Wave w2(5000,15,NUM_LEDS/4,((float)NUM_LEDS));
 
-  Wave(unsigned long start_millis, float speed, float width, float LED_count)
-  {
-    this->start_millis=start_millis;
-    this->speed=speed;
-    this->width=width;
-    this->LED_count = LED_count;
-  }
-
-  void CheckReset(unsigned long current_time)
-  {
-    float passed = (current_time-start_millis)*speed/1000.0F;
-    float total = LED_count+width;
-    if(passed>total)
-    {
-      //Serial.println((String)passed + "/" + (String)total);
-      //Serial.println("Restarting wave.");
-      start_millis=current_time;
-    }
-  }
-};
-
-Wave w1(5000,4,NUM_LEDS,((float)NUM_LEDS));
-Wave w2(5000,15,NUM_LEDS/4,((float)NUM_LEDS));
-
-Wave m1(5000,15,NUM_LEDS/3,((float)10));
-Wave m2(5000,15,NUM_LEDS/3,((float)10));
-Wave m3(5000,15,NUM_LEDS/3,((float)10));
+LEDGraphics::Wave m1(5000,15,NUM_LEDS/3,((float)10));
+LEDGraphics::Wave m2(5000,15,NUM_LEDS/3,((float)10));
+LEDGraphics::Wave m3(5000,15,NUM_LEDS/3,((float)10));
 
 LEDGraphics::BlendBrush purple(CRGB::Purple, 1.0f);
 LEDGraphics::BlendBrush yellow(CRGB::Yellow, 1.0f);
@@ -137,18 +109,22 @@ void loop() {
     switch(mode)
     {
       case Mode::tigers:
-        w1.CheckReset(current_time);
-        w2.CheckReset(current_time);
-        ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
-        ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
+        w1.Paint(current_time,&ledset_1,&yellow); 
+        //w1.CheckReset(current_time);
+        //w2.CheckReset(current_time);
+        //ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
+        //ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
         break;
       case Mode::merica:
-        m1.CheckReset(current_time);
-        m2.CheckReset(current_time);
-        m3.CheckReset(current_time);
-        ledset_m1.paint_wave(current_time,m1.start_millis,0,m1.speed,m1.width,&red);
-        ledset_m2.paint_wave(current_time,m2.start_millis,0,m2.speed,m2.width,&white);
-        ledset_m3.paint_wave(current_time,m3.start_millis,0,m3.speed,m3.width,&blue);
+        m1.Paint(current_time,&ledset_m1,&red);
+        m2.Paint(current_time,&ledset_m2,&white); 
+        m3.Paint(current_time,&ledset_m3,&blue); 
+        //m1.CheckReset(current_time);
+        //m2.CheckReset(current_time);
+        //m3.CheckReset(current_time);
+        //ledset_m1.paint_wave(current_time,m1.start_millis,0,m1.speed,m1.width,&red);
+        //ledset_m2.paint_wave(current_time,m2.start_millis,0,m2.speed,m2.width,&white);
+        //ledset_m3.paint_wave(current_time,m3.start_millis,0,m3.speed,m3.width,&blue);
         break;
     }
 
