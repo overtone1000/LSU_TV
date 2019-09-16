@@ -14,17 +14,23 @@ namespace LEDGraphics
   {
     for(int n=0;n<3;n++)
     {
-      (*pixel)[n]+=color[n]*magnitude;
+      int res = int((*pixel)[n]) + (int)color[n]*magnitude;
+      if(res>255)
+      {
+        (*pixel)[n]=255;
+      }
+      else
+      {
+        (*pixel)[n]=res;
+      }
+      
     }
-  }
-
-  LEDSet2D::~LEDSet2D()
-  {
-    delete[] this->leds;
   }
 
   LEDSet2D::LEDSet2D(CRGB* led_array, unsigned int total_LEDS, unsigned int first_LED, unsigned int last_LED, bool reversed)
   {
+    this->~LEDSet2D();
+
     CRGB* start_led = led_array+first_LED;
     CRGB* stop_led = led_array+last_LED;
     CRGB* led_last = led_array+total_LEDS;
@@ -56,10 +62,28 @@ namespace LEDGraphics
     }
     temp_leds[this->led_count]=(stop_led);
     this->led_count++;
-
     this->leds = new CRGB*[this->led_count];
     memcpy(this->leds,temp_leds,this->led_count*sizeof(CRGB*));
     delete[] temp_leds;
+  }
+
+  LEDSet2D::LEDSet2D(CRGB** led_array, unsigned int total_LEDS)
+  {
+    Serial.println("Runing delete.");
+    this->~LEDSet2D();
+    Serial.println("Creating array.");
+    this->led_count = total_LEDS;
+    this->leds = new CRGB*[this->led_count];
+    Serial.println("Copying array.");
+    memcpy(this->leds,led_array,this->led_count*sizeof(CRGB*));
+  }
+
+  LEDSet2D::~LEDSet2D()
+  {
+    if(this->leds)
+    {
+      delete[] leds;
+    }
   }
 
   //void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
