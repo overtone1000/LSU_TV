@@ -108,8 +108,16 @@ LEDGraphics::Hill sparklewave(10000,0.5,SPARKLE_STEP,NUM_LEDS);
 
 LEDGraphics::AddBrush blue(CRGB::Blue,1.0f);
 LEDGraphics::BlendBrush orange(CRGB::DarkOrange,1.0f);
+LEDGraphics::BlendBrush firebrush(CRGB::DarkOrange,1.0f);
+
 //CRGB background(0,0,5);
 CRGB background(0,0,0);
+
+bool prior_left_state = false;
+bool prior_right_state = false;
+
+unsigned long left_time=0;
+unsigned long right_time=0;
 
 void loop() {
   unsigned long current_time = millis();
@@ -120,16 +128,6 @@ void loop() {
     uint8_t brightness = (float)FINAL_BRIGHTNESS*(float)current_time/(float)FADE_IN_MILLIS;
     Serial.println("Final brightness is " + (String)brightness);
     FastLED.setBrightness(brightness);
-  }
-
-  if(!digitalRead(BUTTON_LEFT))
-  {
-    Serial.println("Left is pushed.");
-  }
-
-  if(!digitalRead(BUTTON_RIGHT))
-  {
-    Serial.println("Right is pushed.");
   }
 
   for(int n=0;n<NUM_LEDS;n++)
@@ -144,12 +142,53 @@ void loop() {
   med_half.Paint(current_time, left_backward, &blue);
   med_half.Paint(current_time, right_backward, &blue);
 
-  //fast_third.Paint(current_time, left_forward, &blue);
-  //fast_third.Paint(current_time, right_forward, &blue);
-
   sparklewave.Paint(current_time, left_sparkles, &orange);
   sparklewave.Paint(current_time, right_sparkles, &orange);
 
+  bool current_left_state = digitalRead(BUTTON_LEFT);
+  bool current_right_state = digitalRead(BUTTON_RIGHT);
+
+  if(current_left_state!=prior_left_state)
+  {
+    prior_left_state=current_left_state;
+    left_time = current_time;
+  }
+  if(current_right_state!=prior_right_state)
+  {
+    prior_right_state=current_right_state;
+    right_time = current_time;
+  }
+
+  if(!current_left_state)
+  {
+    //Left is pushed
+    float final_magnitude=(float)(current_time-left_time)/(float)FIRE_FADE_IN_MILLIS;
+    if(final_magnitude>1.0f){final_magnitude=1.0f;}
+
+    firebrush.SetMagnitude(final_magnitude);
+    for(int n=0;n<NUM_LEDS;n++)
+    {
+      firebrush.paint(leds_left+n);
+    }
+  }
+  else
+  {
+
+  }
+  
+  if(!current_right_state)
+  {
+    //Right is pushed
+    float final_magnitude=(float)(current_time-right_time)/(float)FIRE_FADE_IN_MILLIS;
+    if(final_magnitude>1.0f){final_magnitude=1.0f;}
+    
+    firebrush.SetMagnitude(final_magnitude);
+    for(int n=0;n<NUM_LEDS;n++)
+    {
+      firebrush.paint(leds_right+n);
+    }
+  }  
+  
   FastLED.show();
   delay(LOOP_DELAY);
 }
