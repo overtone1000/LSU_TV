@@ -60,22 +60,27 @@ namespace LEDGraphics
           }
       }
     }
+    
     temp_leds[this->led_count]=(stop_led);
     this->led_count++;
+
     this->leds = new CRGB*[this->led_count];
     memcpy(this->leds,temp_leds,this->led_count*sizeof(CRGB*));
     delete[] temp_leds;
+
+    debug_name=nullptr;
+    SetDebugName("Unnamed LEDSet2D 1");
   }
 
   LEDSet2D::LEDSet2D(CRGB** led_array, unsigned int total_LEDS)
   {
-    Serial.println("Runing delete.");
     this->~LEDSet2D();
-    Serial.println("Creating array.");
     this->led_count = total_LEDS;
     this->leds = new CRGB*[this->led_count];
-    Serial.println("Copying array.");
     memcpy(this->leds,led_array,this->led_count*sizeof(CRGB*));
+
+    debug_name=nullptr;
+    SetDebugName("Unnamed LEDSet2D 2");
   }
 
   LEDSet2D::~LEDSet2D()
@@ -84,10 +89,32 @@ namespace LEDGraphics
     {
       delete[] leds;
     }
+    if(this->debug_name)
+    {
+      delete[] debug_name;
+    }
   }
 
+  void LEDSet2D::SetDebugName(String name)
+  {
+    //Serial.println("Changing LEDSet2D name to " + name);
+    if(this->debug_name!=nullptr)
+    {
+      //Serial.println("Deleting current name.");
+      delete[] this->debug_name;
+      //Serial.println("Deleted.");
+    }
+    //Serial.println("Create new array.");
+    this->debug_name = new char[name.length()+1];
+    //Serial.println("Copying array.");
+    strcpy(this->debug_name,name.c_str());
+  }
+  String LEDSet2D::GetDebugName(){return (String)this->debug_name;}
+  CRGB** LEDSet2D::ledArray(){return this->leds;}
+  const int LEDSet2D::ledCount(){return this->led_count;}
+
   //void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
-  void Wave::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+  void Hill::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
   {
     //wave_speed is LEDs per second
     //wave_width is LEDs
@@ -120,7 +147,7 @@ namespace LEDGraphics
     //Serial.println();
   }
 
-  Wave::Wave(unsigned long start_millis, float speed, float width, float LED_count)
+  Hill::Hill(unsigned long start_millis, float speed, float width, float LED_count)
   {
     this->start_millis=start_millis;
     this->speed=speed;
@@ -128,15 +155,44 @@ namespace LEDGraphics
     this->LED_count = LED_count;
   }
 
-  void Wave::CheckReset(unsigned long current_time)
+  void Hill::CheckReset(unsigned long current_time)
   {
-    float passed = (current_time-start_millis)*speed/1000.0F;
+    float passed = ((float)(current_time-start_millis))*speed/1000.0F;
     float total = LED_count+width;
     if(passed>total)
     {
       //Serial.println((String)passed + "/" + (String)total);
       //Serial.println("Restarting wave.");
       start_millis=current_time;
+    }
+  }
+
+  Wave::Wave(float frequency, float wavelength, float magnitude)
+  {
+    this->magnitude=magnitude;
+    this->wavelength=wavelength;
+    this->wave_millis=round(1000.0f/frequency);
+  }
+  void Wave::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+  {
+    uint8_t init_angle = (float)(current_millis%wave_millis)/(float)wave_millis*MAX_BYTE;
+    
+    //Serial.println("Starting paint with LEDSet " + led_set->GetDebugName() + ". Set contains " + led_set->ledCount() + " LEDs.");
+    //Serial.println("Initial angle = " + (String)init_angle);
+
+    const unsigned int count = led_set->ledCount()-1;
+    unsigned int n;
+    for(n=0;n<count;n++)
+    {
+      float along_wave = (float)n/wavelength;
+      //Serial.println("Along wave is " + (String)along_wave);
+      uint8_t add_angle = MAX_BYTE*along_wave;
+      uint8_t total_angle = init_angle+add_angle;
+      uint8_t brightness = cos8(total_angle);
+      float final_magnitude = ((float)brightness/(float)MAX_BYTE)*this->magnitude;
+      //Serial.println("Final magnitude is " + (String)final_magnitude);
+      brush->SetMagnitude(final_magnitude);
+      brush->paint(led_set->ledArray()[n]);
     }
   }
 }

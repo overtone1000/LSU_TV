@@ -48,15 +48,18 @@ namespace LEDGraphics
     LEDSet2D(CRGB* led_array, unsigned int total_LEDS, unsigned int first_LED, unsigned int last_LED, bool reversed);
     LEDSet2D(CRGB** led_array, unsigned int total_LEDS);
     ~LEDSet2D();
-    //void paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush);
-    CRGB** ledArray(){return leds;}
-    const int ledCount(){return led_count;}
+    //void paint_Hill(unsigned long current_millis, unsigned long start_millis, float Hill_start, float Hill_speed, float Hill_width, MagnitudeBrush* brush);
+    CRGB** ledArray();
+    const int ledCount();
+    void SetDebugName(String name);
+    String GetDebugName();
   private:
     CRGB** leds=nullptr;
-    int led_count=0;
+    unsigned int led_count=0;
+    char* debug_name=nullptr;
   };
 
-  class Wave
+  class Hill
   {
     private:
     unsigned long start_millis;
@@ -66,7 +69,19 @@ namespace LEDGraphics
     void CheckReset(unsigned long current_time);
 
     public:
-    Wave(unsigned long start_millis, float speed, float width, float LED_count);
+    Hill(unsigned long start_millis, float speed, float width, float LED_count);
+    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
+  };
+
+  class Wave
+  {
+    private:
+    unsigned long wave_millis;
+    float wavelength;
+    float magnitude;
+
+    public:
+    Wave(float frequency, float wavelength, float magnitude);
     void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
   };
 }
