@@ -9,6 +9,17 @@
 
 #define FIRE_FADE_IN_MILLIS 2000
 
+#include <SerialMP3Player.h>
+#define TX 13 //connect to RX of module
+#define RX 12 //connect to TX of module
+#define CMD_SEL_DEV 0X09
+#define MUSIC_FOLDER 0
+#define AVENGERS_THEME 1
+#define CHARGING 2
+#define BLAST 3
+
+SerialMP3Player mp3(RX,TX);
+
 // Clock pin only needed for SPI based chipsets when not using hardware SPI
 //#define CLOCK_PIN 8
 
@@ -97,6 +108,13 @@ void setup() {
   pinMode(BUTTON_LEFT, INPUT_PULLUP);
   pinMode(BUTTON_RIGHT, INPUT_PULLUP);
 
+  Serial.println("Setting up mp3 player.");
+  mp3.showDebug(1);
+  mp3.begin(9600);
+  delay(500);
+  
+  mp3.sendCommand(CMD_SEL_DEV,0,2);
+  
   Serial.println("Finished setup.");
 }
 
@@ -120,6 +138,14 @@ unsigned long left_time=0;
 unsigned long right_time=0;
 
 void loop() {
+  mp3.setVol(15); //Decent earphone volume
+  mp3.play(AVENGERS_THEME); //Play once
+  delay(10000);
+  mp3.playSL(CHARGING); //Play loop
+  delay(30000);
+  mp3.play(BLAST); //Play once
+  delay(10000);
+
   unsigned long current_time = millis();
   Serial.println("Starting loop at " + (String)current_time);
 
