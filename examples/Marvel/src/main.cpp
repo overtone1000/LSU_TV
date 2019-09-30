@@ -10,15 +10,13 @@
 #define FIRE_FADE_IN_MILLIS 2000
 
 #include <SerialMP3Player.h>
-#define TX 13 //connect to RX of module
-#define RX 12 //connect to TX of module
 #define CMD_SEL_DEV 0X09
 #define MUSIC_FOLDER 0
 #define AVENGERS_THEME 1
 #define CHARGING 2
 #define BLAST 3
 
-SerialMP3Player mp3(RX,TX);
+SerialMP3Player mp3(RX_PIN,TX_PIN);
 
 // Clock pin only needed for SPI based chipsets when not using hardware SPI
 //#define CLOCK_PIN 8
@@ -112,6 +110,10 @@ void setup() {
   mp3.showDebug(1);
   mp3.begin(9600);
   delay(500);
+
+  //mp3.setVol(15); //Decent earphone volume
+  mp3.setVol(100); //For speaker
+
   
   mp3.sendCommand(CMD_SEL_DEV,0,2);
   
@@ -134,58 +136,34 @@ CRGB background(0,0,0);
 bool prior_left_state = false;
 bool prior_right_state = false;
 
+bool current_left_state = false;
+bool current_right_state = false;
+
 unsigned long left_time=0;
 unsigned long right_time=0;
 
-void loop() {
-  mp3.setVol(15); //Decent earphone volume
-  mp3.play(AVENGERS_THEME); //Play once
-  delay(10000);
-  mp3.playSL(CHARGING); //Play loop
-  delay(30000);
-  mp3.play(BLAST); //Play once
-  delay(10000);
+unsigned long current_time=0;
 
-  unsigned long current_time = millis();
-  Serial.println("Starting loop at " + (String)current_time);
 
-  if(current_time<FADE_IN_MILLIS)
+void button_change()
+{
+  if(current_right_state && current_right_state!=prior_right_state)
   {
-    uint8_t brightness = (float)FINAL_BRIGHTNESS*(float)current_time/(float)FADE_IN_MILLIS;
-    Serial.println("Final brightness is " + (String)brightness);
-    FastLED.setBrightness(brightness);
+    mp3.play(BLAST);
   }
-
-  for(int n=0;n<NUM_LEDS;n++)
+  else if(current_left_state && current_left_state!=prior_left_state)
   {
-    leds_left[n] = background;
-    leds_right[n] = background;
+    mp3.play(BLAST);
   }
-
-  slow_half.Paint(current_time, left_forward, &blue);
-  slow_half.Paint(current_time, right_forward, &blue);
-
-  med_half.Paint(current_time, left_backward, &blue);
-  med_half.Paint(current_time, right_backward, &blue);
-
-  sparklewave.Paint(current_time, left_sparkles, &orange);
-  sparklewave.Paint(current_time, right_sparkles, &orange);
-
-  bool current_left_state = digitalRead(BUTTON_LEFT);
-  bool current_right_state = digitalRead(BUTTON_RIGHT);
-
-  if(current_left_state!=prior_left_state)
+  else if(!current_right_state || !current_left_state)
   {
-    prior_left_state=current_left_state;
-    left_time = current_time;
+    mp3.playSL(CHARGING);
   }
-  if(current_right_state!=prior_right_state)
-  {
-    prior_right_state=current_right_state;
-    right_time = current_time;
-  }
+}
 
-  if(!current_left_state)
+void conditional_paint()
+{
+    if(!current_left_state)
   {
     //Left is pushed
     float final_magnitude=(float)(current_time-left_time)/(float)FIRE_FADE_IN_MILLIS;
@@ -213,7 +191,57 @@ void loop() {
     {
       firebrush.paint(leds_right+n);
     }
+  }
+}
+
+void loop() {
+  //mp3.play(AVENGERS_THEME); //Play once
+  //mp3.play(BLAST); //Play once
+
+  unsigned long current_time = millis();
+  Serial.println("Starting loop at " + (String)current_time);
+
+  if(current_time<FADE_IN_MILLIS)
+  {
+    uint8_t brightness = (float)FINAL_BRIGHTNESS*(float)current_time/(float)FADE_IN_MILLIS;
+    Serial.println("Final brightness is " + (String)brightness);
+    FastLED.setBrightness(brightness);
+  }
+
+  for(int n=0;n<NUM_LEDS;n++)
+  {
+    leds_left[n] = background;
+    leds_right[n] = background;
+  }
+
+  slow_half.Paint(current_time, left_forward, &blue);
+  slow_half.Paint(current_time, right_forward, &blue);
+
+  med_half.Paint(current_time, left_backward, &blue);
+  med_half.Paint(current_time, right_backward, &blue);
+
+  sparklewave.Paint(current_time, left_sparkles, &orange);
+  sparklewave.Paint(current_time, right_sparkles, &orange);
+
+  current_left_state = digitalRead(BUTTON_LEFT);
+  current_right_state = digitalRead(BUTTON_RIGHT);
+
+  if(current_left_state!=prior_left_state || current_right_state!=prior_right_state)
+  {
+    button_change();
+    if(current_left_state!=prior_left_state)
+    {
+      prior_left_state=current_left_state;
+      left_time = current_time;  
+    }
+    if(current_right_state!=prior_right_state)
+    {
+      prior_right_state=current_right_state;
+      right_time = current_time;
+    }
   }  
+
+  conditional_paint();
   
   FastLED.show();
   delay(LOOP_DELAY);
