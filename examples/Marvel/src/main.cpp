@@ -111,8 +111,7 @@ void setup() {
   mp3.begin(9600);
   delay(500);
 
-  //mp3.setVol(15); //Decent earphone volume
-  mp3.setVol(100); //For speaker
+  mp3.setVol(BASELINE_VOLUME);
 
   
   mp3.sendCommand(CMD_SEL_DEV,0,2);
@@ -133,31 +132,122 @@ LEDGraphics::BlendBrush firebrush(CRGB::DarkOrange,1.0f);
 //CRGB background(0,0,5);
 CRGB background(0,0,0);
 
-bool prior_left_state = false;
-bool prior_right_state = false;
+bool prior_left_state = true;
+bool prior_right_state = true;
 
-bool current_left_state = false;
-bool current_right_state = false;
+bool current_left_state = true;
+bool current_right_state = true;
 
 unsigned long left_time=0;
 unsigned long right_time=0;
 
 unsigned long current_time=0;
 
+enum Mode
+{
+  Resting,
+  Blasting,
+  Charging,
+  Special
+};
+
+Mode previous_mode=Resting;
+Mode current_mode=Resting;
+
+bool double_charging=false;
+
+unsigned long time_previous_mode_started=0;
+const unsigned long theme_length=33019;
+const unsigned long blast_length=4885;
+
+void set_mode(Mode new_mode)
+{
+  current_mode=new_mode;
+  time_previous_mode_started=millis();
+}
+
+void handle_mode(unsigned long current_time)
+{
+  if(previous_mode == Blasting)
+  {
+    if(time_previous_mode_started+blast_length<current_time)
+    {
+      return;
+    }
+  }
+
+  switch(current_mode)
+  {
+    case Resting:
+    {
+
+    }
+    break;
+    case Blasting:
+    {
+      if(current_mode!=previous_mode)
+      {
+        mp3.play(BLAST);
+      }
+    }
+    break;
+    case Charging:
+    {
+      if(current_mode!=previous_mode)
+      {
+        mp3.play(CHARGING);
+      }
+    }
+    break;
+    case Special:
+    {
+
+    }
+    break;
+  }
+
+  previous_mode=current_mode;
+}
+
+void set_audio()
+{
+
+}
+
+void process_input()
+{
+  current_left_state = digitalRead(BUTTON_LEFT);
+  current_right_state = digitalRead(BUTTON_RIGHT);
+
+  if(current_left_state!=prior_left_state || current_right_state!=prior_right_state)
+  {
+    button_change();
+    if(current_left_state!=prior_left_state)
+    {
+      prior_left_state=current_left_state;
+      left_time = current_time;  
+    }
+    if(current_right_state!=prior_right_state)
+    {
+      prior_right_state=current_right_state;
+      right_time = current_time;
+    }
+  }  
+}
 
 void button_change()
 {
   if(current_right_state && current_right_state!=prior_right_state)
   {
-    mp3.play(BLAST);
+    set_mode(Blasting);
   }
   else if(current_left_state && current_left_state!=prior_left_state)
   {
-    mp3.play(BLAST);
+    set_mode(Blasting);
   }
   else if(!current_right_state || !current_left_state)
   {
-    mp3.playSL(CHARGING);
+    set_mode(Charging);
   }
 }
 
@@ -223,24 +313,9 @@ void loop() {
   sparklewave.Paint(current_time, left_sparkles, &orange);
   sparklewave.Paint(current_time, right_sparkles, &orange);
 
-  current_left_state = digitalRead(BUTTON_LEFT);
-  current_right_state = digitalRead(BUTTON_RIGHT);
-
-  if(current_left_state!=prior_left_state || current_right_state!=prior_right_state)
-  {
-    button_change();
-    if(current_left_state!=prior_left_state)
-    {
-      prior_left_state=current_left_state;
-      left_time = current_time;  
-    }
-    if(current_right_state!=prior_right_state)
-    {
-      prior_right_state=current_right_state;
-      right_time = current_time;
-    }
-  }  
-
+  process_input();
+  handle_mode(current_time);
+  set_audio();
   conditional_paint();
   
   FastLED.show();
