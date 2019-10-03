@@ -146,21 +146,20 @@ enum Mode
   Resting,
   Blasting,
   Charging,
+  DoubleCharging,
   Special
 };
 String mode_debug[] = {
   "Resting",
   "Blasting",
   "Charging",
+  "DoubleCharging",
   "Special"
 };
 String ModeString(Mode mode){return (String)(mode_debug[mode]);}
 
 Mode previous_mode=Resting;
 Mode current_mode=Resting;
-
-bool previous_double_charging=false;
-bool current_double_charging=false;
 
 unsigned long time_current_mode_started=0;
 const unsigned long theme_length=33019;
@@ -192,8 +191,27 @@ void set_mode(Mode new_mode)
     default:
     break;
   }
+
+  if(new_mode==DoubleCharging && new_mode!=current_mode)
+  {
+    if(current_mode!=new_mode)
+    {
+      Serial.println("Increasing volume.");
+      mp3.setVol(BASELINE_VOLUME*1.5);
+
+      special_start=current_time;
+      Serial.println("Starting special countdown at " + (String)special_start);
+    }
+  }
+  else if(current_mode==DoubleCharging && new_mode!=current_mode)
+  {
+    Serial.println("Returning to normal volume.");
+    mp3.setVol(BASELINE_VOLUME);
+  }
+
+
   current_mode=new_mode;
-  time_current_mode_started=millis();
+  time_current_mode_started=current_time;
   Serial.println();
   Serial.print("Mode set to ");
   Serial.print(ModeString(current_mode));
@@ -202,7 +220,7 @@ void set_mode(Mode new_mode)
   Serial.println();
 }
 
-void handle_mode(unsigned long current_time)
+void handle_mode()
 {
   switch(current_mode)
   {
@@ -215,17 +233,23 @@ void handle_mode(unsigned long current_time)
       }
     }
     break;
+    case DoubleCharging:
+    {
+      Serial.println("Testing specialtime. Start was " + (String)special_start + " while time was " + (String)special_time + " and current time is " + (String)current_time);
+      if(special_start+special_time<current_time)
+      {
+        set_mode(Special);
+        handle_mode();
+        return;
+      }
+    }
+    //break; //Cascade to charging
     case Charging:
     {
       if(current_mode!=previous_mode)
       {
         Serial.println("Playing charging.");
         mp3.play(CHARGING);
-      }
-      if(special_start+special_time<current_time)
-      {
-        set_mode(Special);
-        return;
       }
     }
     break;
@@ -243,9 +267,8 @@ void handle_mode(unsigned long current_time)
   previous_mode=current_mode;
 }
 
-void button_change(unsigned long current_time)
+void button_change()
 {
-  current_double_charging=false;
   if(current_right_state && current_right_state!=prior_right_state)
   {
     set_mode(Blasting);
@@ -254,47 +277,28 @@ void button_change(unsigned long current_time)
   {
     set_mode(Blasting);
   }
-  else if(!current_right_state || !current_left_state)
+  else if(current_right_state != current_left_state)
   {
     set_mode(Charging);
-    if(!current_right_state && !current_left_state)
-    {
-      current_double_charging=true;
-    }
+  }
+  else if(!current_right_state && !current_left_state)
+  {
+    set_mode(DoubleCharging);
   }
   else
   {
     set_mode(Resting);
   }
-  
-
-  if(previous_double_charging!=current_double_charging)
-  {
-    if(current_double_charging)
-    {
-      Serial.println("Increasing volume.");
-      mp3.setVol(BASELINE_VOLUME*1.5);
-
-      Serial.println("Starting special countdown.");
-      special_start=current_time;
-    }
-    else
-    {
-      Serial.println("Returning to normal volume.");
-      mp3.setVol(BASELINE_VOLUME);
-    }
-    previous_double_charging=current_double_charging;
-  }
 }
 
-void process_input(unsigned long current_time)
+void process_input()
 {
   current_left_state = digitalRead(BUTTON_LEFT);
   current_right_state = digitalRead(BUTTON_RIGHT);
 
   if(current_left_state!=prior_left_state || current_right_state!=prior_right_state)
   {
-    button_change(current_time);
+    button_change();
     if(current_left_state!=prior_left_state)
     {
       prior_left_state=current_left_state;
@@ -308,7 +312,7 @@ void process_input(unsigned long current_time)
   }  
 }
 
-void conditional_paint(unsigned long current_time)
+void conditional_paint()
 {
   switch(current_mode)
   {
@@ -358,7 +362,7 @@ void loop() {
   //mp3.play(AVENGERS_THEME); //Play once
   //mp3.play(BLAST); //Play once
 
-  unsigned long current_time = millis();
+  current_time = millis();
   //Serial.println("Starting loop at " + (String)current_time);
 
   if(current_time<FADE_IN_MILLIS)
@@ -383,9 +387,9 @@ void loop() {
   sparklewave.Paint(current_time, left_sparkles, &orange);
   sparklewave.Paint(current_time, right_sparkles, &orange);
 
-  process_input(current_time);
-  handle_mode(current_time);
-  conditional_paint(current_time);
+  process_input();
+  handle_mode();
+  conditional_paint();
   
   FastLED.show();
   delay(LOOP_DELAY);
