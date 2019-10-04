@@ -142,8 +142,8 @@ bool prior_right_state = true;
 bool current_left_state = true;
 bool current_right_state = true;
 
-unsigned long left_time=0;
-unsigned long right_time=0;
+unsigned long left_charge_start=0;
+unsigned long right_charge_start=0;
 
 enum Mode
 {
@@ -167,35 +167,35 @@ Mode current_mode=Resting;
 
 unsigned long time_current_mode_started=0;
 const unsigned long theme_length=33019;
-const unsigned long blast_length=4885;
+const unsigned long blast_length=1000; //4885;
 
 unsigned long special_start=0;
 const unsigned long special_time=5000;
 
-void set_mode(Mode new_mode)
+bool watch_for_next_mode=false;
+
+unsigned long charge_wave_time=0;
+
+bool set_mode(Mode new_mode)
 {
   //Don't change current mode if one of the timed modes is still running
   switch(current_mode)
   {
     case Blasting:
     {
-      Serial.print("Current mode is blasting. Started at " + (String)time_current_mode_started + " with length of " + (String)blast_length + " while current time is " + (String)current_time);
-      Serial.println((String)(current_time-time_current_mode_started-blast_length) + " remaining.");
-      if((time_current_mode_started+blast_length)<current_time)
+      if((time_current_mode_started+blast_length)>current_time)
       {
-        Serial.println("Mode not changed. Still blasting.");
-        return;
+        Serial.println("Mode not changed. Still blasting." + (String)time_current_mode_started + "|" + (String)blast_length + "|" + (String)current_time);
+        return false;
       }
     }
     break;
     case Special:
     {
-      Serial.print("Current mode is special. Started at " + (String)time_current_mode_started + " with length of " + (String)theme_length + " while current time is " + (String)current_time);
-      Serial.println((String)(current_time-time_current_mode_started-theme_length) + " remaining.");
-      if((time_current_mode_started+theme_length)<current_time)
+      if((time_current_mode_started+theme_length)>current_time)
       {
-        Serial.println("Mode not changed. Still specialing.");
-        return;
+        Serial.println("Mode not changed. Still specialing." + (String)time_current_mode_started + "|" + (String)theme_length + "|" + (String)current_time);
+        return false;
       }
     }
     default:
@@ -203,7 +203,7 @@ void set_mode(Mode new_mode)
   }
 
   Serial.println();
-  Serial.print("Mode set to ");
+  Serial.print("Mode now ");
   Serial.print(ModeString(new_mode));
   Serial.print(" at ");
   Serial.print(current_time);
@@ -218,10 +218,15 @@ void set_mode(Mode new_mode)
       delay(20);
 
       special_start=current_time;
-      Serial.println("Starting special countdown at " + (String)special_start);
+      Serial.println("Starting special at " + (String)special_start);
+    }
+    if(new_mode==Blasting)
+    {
+      watch_for_next_mode=true;
     }
     if(new_mode==Special)
     {
+      watch_for_next_mode=true;
       Serial.println("Vol 2x");
       mp3.setVol(BASELINE_VOLUME*2);
       delay(20);
@@ -233,14 +238,45 @@ void set_mode(Mode new_mode)
       delay(20);
     }
   }
-
-
   current_mode=new_mode;
   time_current_mode_started=current_time;
+
+  return true;
+}
+
+bool button_change()
+{
+  if(current_right_state && current_right_state!=prior_right_state)
+  {
+    return set_mode(Blasting);
+  }
+  else if(current_left_state && current_left_state!=prior_left_state)
+  {
+    return set_mode(Blasting);
+  }
+  else if(current_right_state != current_left_state)
+  {
+    return set_mode(Charging);
+  }
+  else if(!current_right_state && !current_left_state)
+  {
+    return set_mode(DoubleCharging);
+  }
+  else
+  {
+    return set_mode(Resting);
+  }
+  return false;
+}
+
+void check_next_mode()
+{
+  if(watch_for_next_mode){watch_for_next_mode=!button_change();}
 }
 
 void handle_mode()
 {
+  check_next_mode();
   switch(current_mode)
   {
     case Blasting:
@@ -249,6 +285,7 @@ void handle_mode()
       {
         Serial.println("Playing blast.");
         mp3.play(BLAST);
+        delay(20);
       }
     }
     break;
@@ -268,6 +305,8 @@ void handle_mode()
       {
         Serial.println("Playing charging.");
         mp3.play(CHARGING);
+        charge_wave_time=current_time;
+        delay(20);
       }
     }
     break;
@@ -277,37 +316,16 @@ void handle_mode()
       {
         Serial.println("Playing Theme.");
         mp3.play(AVENGERS_THEME);
+        delay(20);
       }
     }
     break;
+    default:break;
   }
 
   previous_mode=current_mode;
 }
 
-void button_change()
-{
-  if(current_right_state && current_right_state!=prior_right_state)
-  {
-    set_mode(Blasting);
-  }
-  else if(current_left_state && current_left_state!=prior_left_state)
-  {
-    set_mode(Blasting);
-  }
-  else if(current_right_state != current_left_state)
-  {
-    set_mode(Charging);
-  }
-  else if(!current_right_state && !current_left_state)
-  {
-    set_mode(DoubleCharging);
-  }
-  else
-  {
-    set_mode(Resting);
-  }
-}
 
 void process_input()
 {
@@ -320,14 +338,35 @@ void process_input()
     if(current_left_state!=prior_left_state)
     {
       prior_left_state=current_left_state;
-      left_time = current_time;  
+      left_charge_start = current_time;  
     }
     if(current_right_state!=prior_right_state)
     {
       prior_right_state=current_right_state;
-      right_time = current_time;
+      right_charge_start = current_time;
     }
   }  
+}
+
+const float charge_freq = 0.5; //Hz
+const unsigned long ms_per_wave = 1000/charge_freq;
+
+void chargepaint(CRGB* leds, unsigned long ramp_time)
+{
+  //Left is pushed
+  float final_magnitude=(float)(current_time-ramp_time)/(float)FIRE_FADE_IN_MILLIS;
+  if(final_magnitude>1.0f){final_magnitude=1.0f;}
+  
+  float wave_multiplier = (((float)cos8((current_time-charge_wave_time)%(ms_per_wave)*MAX_BYTE/ms_per_wave))/((float)MAX_BYTE)+1.0f)/2.0f;
+  final_magnitude*=wave_multiplier;
+
+  Serial.println((String)current_time + ", " + (String)charge_wave_time + " - " + (String)wave_multiplier + "|" + (String)final_magnitude);
+
+  firebrush.SetMagnitude(final_magnitude);
+  for(int n=0;n<NUM_LEDS;n++)
+  {
+    firebrush.paint(leds+n);
+  }
 }
 
 void conditional_paint()
@@ -335,35 +374,19 @@ void conditional_paint()
   switch(current_mode)
   {
     case Blasting:
-    {
-
-    }
     //break; //don't break, fall through to Charging in case the other button is still pushed
+    case DoubleCharging:
     case Charging:
     {
-      if(!current_left_state)
+      if(!current_left_state || !current_right_state)
       {
-        //Left is pushed
-        float final_magnitude=(float)(current_time-left_time)/(float)FIRE_FADE_IN_MILLIS;
-        if(final_magnitude>1.0f){final_magnitude=1.0f;}
-
-        firebrush.SetMagnitude(final_magnitude);
-        for(int n=0;n<NUM_LEDS;n++)
+        if(!current_left_state)
         {
-          firebrush.paint(leds_left+n);
+          chargepaint(leds_left,left_charge_start);
         }
-      }
-      
-      if(!current_right_state)
-      {
-        //Right is pushed
-        float final_magnitude=(float)(current_time-right_time)/(float)FIRE_FADE_IN_MILLIS;
-        if(final_magnitude>1.0f){final_magnitude=1.0f;}
-        
-        firebrush.SetMagnitude(final_magnitude);
-        for(int n=0;n<NUM_LEDS;n++)
+        if(!current_right_state)
         {
-          firebrush.paint(leds_right+n);
+          chargepaint(leds_right,right_charge_start);
         }
       }
     }
@@ -373,6 +396,7 @@ void conditional_paint()
 
     }
     break;
+    default:break;
   }
 }
 
