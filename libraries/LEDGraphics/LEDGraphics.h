@@ -71,6 +71,8 @@ namespace LEDGraphics
     public:
     Hill(unsigned long start_millis, float speed, float width, float LED_count);
     void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
+    void SetStartTime(unsigned long new_start_millis);
+    unsigned long GetStartTime();
   };
 
   class Wave

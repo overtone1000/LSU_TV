@@ -128,7 +128,7 @@ namespace LEDGraphics
 
     if(last_LED>=led_set->ledCount()){last_LED=led_set->ledCount()-1;}
     if(first_LED<0){first_LED=0;}
-
+    
     for(int n=first_LED;n<=last_LED;n++)
     {
       float x = ((float)n-first_x);
@@ -145,6 +145,16 @@ namespace LEDGraphics
       //Serial.print((String)dim_factor + ", ");
     }
     //Serial.println();
+  }
+
+  void Hill::SetStartTime(unsigned long new_start_millis)
+  {
+    this->start_millis=new_start_millis;
+  }
+
+  unsigned long Hill::GetStartTime()
+  {
+    return start_millis;
   }
 
   Hill::Hill(unsigned long start_millis, float speed, float width, float LED_count)
