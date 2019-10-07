@@ -40,6 +40,16 @@ LEDGraphics::LEDSet2D* right_sparkles;
 unsigned long current_time=0;
 unsigned long last_time=0;
 
+unsigned long time_current_mode_started=0;
+const unsigned long theme_length=33019;
+const unsigned long blast_length=1000; //4885;
+
+unsigned long special_start=0;
+const unsigned long special_time=5000;
+
+bool watch_for_next_mode=false;
+
+unsigned long charge_wave_time=0;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -131,6 +141,11 @@ LEDGraphics::Wave fast_third(1.115137998,NUM_LEDS/2,0.1);
 
 LEDGraphics::Hill sparklewave(10000,0.5,SPARKLE_STEP,NUM_LEDS);
 
+const float firewave_width = NUM_LEDS*5;
+const float firewave_speed = (float)(NUM_LEDS+firewave_width)/(float)blast_length*1000.0f;
+LEDGraphics::Hill left_firewave(0,firewave_speed,firewave_width,NUM_LEDS);
+LEDGraphics::Hill right_firewave(0,firewave_speed,firewave_width,NUM_LEDS);
+
 LEDGraphics::AddBrush blue(CRGB::Blue,1.0f);
 LEDGraphics::BlendBrush orange(CRGB::OrangeRed,1.0f);
 LEDGraphics::BlendBrush firebrush(CRGB::OrangeRed,1.0f);
@@ -149,9 +164,6 @@ bool current_right_state = true;
 
 unsigned long left_charge_start=0;
 unsigned long right_charge_start=0;
-
-unsigned long left_blast_start=0;
-unsigned long right_blast_start=0;
 
 enum Mode
 {
@@ -173,17 +185,6 @@ String ModeString(Mode mode){return (String)(mode_debug[mode]);}
 Mode previous_mode=Resting;
 Mode current_mode=Resting;
 
-unsigned long time_current_mode_started=0;
-const unsigned long theme_length=33019;
-const unsigned long blast_length=1000; //4885;
-
-unsigned long special_start=0;
-const unsigned long special_time=5000;
-
-bool watch_for_next_mode=false;
-
-unsigned long charge_wave_time=0;
-
 bool set_mode(Mode new_mode)
 {
   //Don't change current mode if one of the timed modes is still running
@@ -193,7 +194,7 @@ bool set_mode(Mode new_mode)
     {
       if((time_current_mode_started+blast_length)>current_time)
       {
-        Serial.println("Mode not changed. Still blasting." + (String)time_current_mode_started + "|" + (String)blast_length + "|" + (String)current_time);
+        Serial.println("Mode not changed. Still blasting.");
         return false;
       }
     }
@@ -202,7 +203,7 @@ bool set_mode(Mode new_mode)
     {
       if((time_current_mode_started+theme_length)>current_time)
       {
-        Serial.println("Mode not changed. Still specialing." + (String)time_current_mode_started + "|" + (String)theme_length + "|" + (String)current_time);
+        Serial.println("Mode not changed. Still specialing.");
         return false;
       }
     }
@@ -286,7 +287,8 @@ bool button_change()
     }    
     else
     {
-      left_blast_start = current_time;  
+      Serial.println("Setting left firewave start time. " + (String)current_time);
+      left_firewave.SetStartTime(current_time);
     }
   }
   if(current_right_state!=prior_right_state)
@@ -298,7 +300,7 @@ bool button_change()
     }    
     else
     {
-      right_charge_start = current_time;  
+      right_firewave.SetStartTime(current_time);
     }
   }
 
@@ -386,8 +388,6 @@ void chargepaint(CRGB* leds, unsigned long ramp_time)
   float wave_multiplier = (((float)cos8((current_time-charge_wave_time)%(ms_per_wave)*MAX_BYTE/ms_per_wave))/((float)MAX_BYTE)+1.0f)/2.0f;
   final_magnitude*=wave_multiplier;
 
-  Serial.println((String)current_time + ", " + (String)charge_wave_time + " - " + (String)wave_multiplier + "|" + (String)final_magnitude);
-
   firebrush.SetMagnitude(final_magnitude);
   for(int n=0;n<NUM_LEDS;n++)
   {
@@ -427,19 +427,13 @@ void conditional_paint()
   switch(current_mode)
   {
     case Blasting:
-      if(current_time<left_blast_start+blast_length)
+      if(current_time<left_firewave.GetStartTime()+blast_length)
       {
-        for(int n=0;n<NUM_LEDS;n++)
-        {
-          leds_left[n] = CRGB::Red;
-        }
+        left_firewave.Paint(current_time, left_forward, &firebrush);
       }
-      if(current_time<right_blast_start+blast_length)
+      if(current_time<right_firewave.GetStartTime()+blast_length)
       {
-        for(int n=0;n<NUM_LEDS;n++)
-        {
-          leds_right[n] = CRGB::Red;
-        }
+        right_firewave.Paint(current_time, right_forward, &firebrush);
       }
     case DoubleCharging:
     case Charging:
