@@ -125,13 +125,18 @@ void setup() {
 
 LEDGraphics::Wave slow_half(0.2,NUM_LEDS*2,0.1);
 LEDGraphics::Wave med_half(0.49,NUM_LEDS,0.1);
-LEDGraphics::Wave fast_third(0.99,NUM_LEDS/2,0.1);
+LEDGraphics::Wave fast_third(1.115137998,NUM_LEDS/2,0.1);
+
+//8 beats, ends at 23285, starts at 16111. Thats 8/(23.285-16.111) Hz = 1.115137998
 
 LEDGraphics::Hill sparklewave(10000,0.5,SPARKLE_STEP,NUM_LEDS);
 
 LEDGraphics::AddBrush blue(CRGB::Blue,1.0f);
-LEDGraphics::BlendBrush orange(CRGB::DarkOrange,1.0f);
-LEDGraphics::BlendBrush firebrush(CRGB::DarkOrange,1.0f);
+LEDGraphics::BlendBrush orange(CRGB::OrangeRed,1.0f);
+LEDGraphics::BlendBrush firebrush(CRGB::OrangeRed,1.0f);
+
+LEDGraphics::AddBrush specialwhite(CRGB::DarkOrange,1.0f);
+LEDGraphics::BlendBrush specialblue(CRGB::Blue,1.0f);
 
 //CRGB background(0,0,5);
 CRGB background(0,0,0);
@@ -144,6 +149,9 @@ bool current_right_state = true;
 
 unsigned long left_charge_start=0;
 unsigned long right_charge_start=0;
+
+unsigned long left_blast_start=0;
+unsigned long right_blast_start=0;
 
 enum Mode
 {
@@ -246,27 +254,55 @@ bool set_mode(Mode new_mode)
 
 bool button_change()
 {
+  bool retval=false;
+
   if(current_right_state && current_right_state!=prior_right_state)
   {
-    return set_mode(Blasting);
+    retval = set_mode(Blasting);
   }
   else if(current_left_state && current_left_state!=prior_left_state)
   {
-    return set_mode(Blasting);
+    retval = set_mode(Blasting);
   }
   else if(current_right_state != current_left_state)
   {
-    return set_mode(Charging);
+    retval = set_mode(Charging);
   }
   else if(!current_right_state && !current_left_state)
   {
-    return set_mode(DoubleCharging);
+    retval = set_mode(DoubleCharging);
   }
   else
   {
-    return set_mode(Resting);
+    retval = set_mode(Resting);
   }
-  return false;
+
+  if(current_left_state!=prior_left_state)
+  {
+    prior_left_state=current_left_state;
+    if(!current_left_state)
+    {
+      left_charge_start = current_time;  
+    }    
+    else
+    {
+      left_blast_start = current_time;  
+    }
+  }
+  if(current_right_state!=prior_right_state)
+  {
+    prior_right_state=current_right_state;
+    if(!current_right_state)
+    {
+      right_charge_start = current_time;  
+    }    
+    else
+    {
+      right_charge_start = current_time;  
+    }
+  }
+
+  return retval;
 }
 
 void check_next_mode()
@@ -335,16 +371,6 @@ void process_input()
   if(current_left_state!=prior_left_state || current_right_state!=prior_right_state)
   {
     button_change();
-    if(current_left_state!=prior_left_state)
-    {
-      prior_left_state=current_left_state;
-      left_charge_start = current_time;  
-    }
-    if(current_right_state!=prior_right_state)
-    {
-      prior_right_state=current_right_state;
-      right_charge_start = current_time;
-    }
   }  
 }
 
@@ -369,31 +395,74 @@ void chargepaint(CRGB* leds, unsigned long ramp_time)
   }
 }
 
+void pattern1paint(CRGB* leds, LEDGraphics::MagnitudeBrush* wave, LEDGraphics::MagnitudeBrush* sparkle)
+{
+  slow_half.Paint(current_time, left_forward, wave);
+  slow_half.Paint(current_time, right_forward, wave);
+
+  med_half.Paint(current_time, left_backward, wave);
+  med_half.Paint(current_time, right_backward, wave);
+
+  sparklewave.Paint(current_time, left_sparkles, sparkle);
+  sparklewave.Paint(current_time, right_sparkles, sparkle);
+}
+
+void pattern2paint(CRGB* leds, LEDGraphics::MagnitudeBrush* wave, LEDGraphics::MagnitudeBrush* counterwave)
+{
+  slow_half.Paint(current_time, left_forward, wave);
+  slow_half.Paint(current_time, right_forward, wave);
+
+  med_half.Paint(current_time, left_backward, counterwave);
+  med_half.Paint(current_time, right_backward, counterwave);
+
+  fast_third.Paint(current_time, left_forward, wave);
+  fast_third.Paint(current_time, left_forward, wave);
+}
+
 void conditional_paint()
 {
+  pattern1paint(leds_left,&blue,&orange);
+  pattern1paint(leds_right,&blue,&orange);
+
   switch(current_mode)
   {
     case Blasting:
-    //break; //don't break, fall through to Charging in case the other button is still pushed
+      if(current_time<left_blast_start+blast_length)
+      {
+        for(int n=0;n<NUM_LEDS;n++)
+        {
+          leds_left[n] = CRGB::Red;
+        }
+      }
+      if(current_time<right_blast_start+blast_length)
+      {
+        for(int n=0;n<NUM_LEDS;n++)
+        {
+          leds_right[n] = CRGB::Red;
+        }
+      }
     case DoubleCharging:
     case Charging:
     {
-      if(!current_left_state || !current_right_state)
+      if(!current_left_state)
       {
-        if(!current_left_state)
-        {
-          chargepaint(leds_left,left_charge_start);
-        }
-        if(!current_right_state)
-        {
-          chargepaint(leds_right,right_charge_start);
-        }
+        chargepaint(leds_left,left_charge_start);
+      }
+      if(!current_right_state)
+      {
+        chargepaint(leds_right,right_charge_start);
       }
     }
     break;
     case Special:
     {
-
+      for(int n=0;n<NUM_LEDS;n++)
+      {
+        leds_left[n] = background;
+        leds_right[n] = background;
+      }
+      pattern2paint(leds_left,&specialwhite,&specialblue);
+      pattern2paint(leds_right,&specialwhite,&specialblue);
     }
     break;
     default:break;
@@ -412,6 +481,17 @@ void loop() {
     Serial.println("Final brightness is " + (String)brightness);
     FastLED.setBrightness(brightness);
   }
+  else
+  {
+    if(current_mode==Special)
+    {
+      FastLED.setBrightness(FINAL_BRIGHTNESS*2);
+    }
+    else
+    {
+      FastLED.setBrightness(FINAL_BRIGHTNESS);
+    }
+  }
 
   for(int n=0;n<NUM_LEDS;n++)
   {
@@ -419,14 +499,7 @@ void loop() {
     leds_right[n] = background;
   }
 
-  slow_half.Paint(current_time, left_forward, &blue);
-  slow_half.Paint(current_time, right_forward, &blue);
-
-  med_half.Paint(current_time, left_backward, &blue);
-  med_half.Paint(current_time, right_backward, &blue);
-
-  sparklewave.Paint(current_time, left_sparkles, &orange);
-  sparklewave.Paint(current_time, right_sparkles, &orange);
+  
 
   process_input();
   handle_mode();
