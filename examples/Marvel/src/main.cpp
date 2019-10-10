@@ -148,10 +148,12 @@ LEDGraphics::Hill right_firewave(0,firewave_speed,firewave_width,NUM_LEDS);
 
 LEDGraphics::AddBrush blue(CRGB::Blue,1.0f);
 LEDGraphics::BlendBrush orange(CRGB::OrangeRed,1.0f);
-LEDGraphics::BlendBrush firebrush(CRGB::OrangeRed,1.0f);
 
-LEDGraphics::AddBrush specialwhite(CRGB::DarkOrange,1.0f);
-LEDGraphics::BlendBrush specialblue(CRGB::Blue,1.0f);
+LEDGraphics::BlendBrush chargebrush(CRGB::MediumVioletRed,1.0f);
+LEDGraphics::BlendBrush firebrush(CRGB::Red,1.0f);
+
+LEDGraphics::AddBrush specialwhite(CRGB::MediumVioletRed,1.0f);
+LEDGraphics::BlendBrush specialblue(CRGB::White,1.0f);
 
 //CRGB background(0,0,5);
 CRGB background(0,0,0);
@@ -389,10 +391,10 @@ void chargepaint(CRGB* leds, unsigned long ramp_time)
   float wave_multiplier = (((float)cos8((current_time-charge_wave_time)%(ms_per_wave)*MAX_BYTE/ms_per_wave))/((float)MAX_BYTE)+1.0f)/2.0f;
   final_magnitude*=wave_multiplier;
 
-  firebrush.SetMagnitude(final_magnitude);
+  chargebrush.SetMagnitude(final_magnitude);
   for(int n=0;n<NUM_LEDS;n++)
   {
-    firebrush.paint(leds+n);
+    chargebrush.paint(leds+n);
   }
 }
 
