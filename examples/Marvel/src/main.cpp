@@ -4,10 +4,10 @@
 #define LOOP_DELAY 50
 #define SPARKLE_STEP 3
 
-#define FADE_IN_MILLIS 10000
+#define FADE_IN_MILLIS 5000
 #define FINAL_BRIGHTNESS 100
 
-#define FIRE_FADE_IN_MILLIS 2000
+#define FIRE_FADE_IN_MILLIS 3000
 
 #include <SerialMP3Player.h>
 #define CMD_SEL_DEV 0X09
@@ -45,7 +45,7 @@ const unsigned long theme_length=33019;
 const unsigned long blast_length=1000; //4885;
 
 unsigned long special_start=0;
-const unsigned long special_time=5000;
+const unsigned long special_time=8000;
 
 bool watch_for_next_mode=false;
 
@@ -98,10 +98,10 @@ void setup() {
   FastLED.show();
 
   Serial.println("6");
-  left_forward=new LEDGraphics::LEDSet2D(leds_left,NUM_LEDS,0,NUM_LEDS,false);
-  left_backward=new LEDGraphics::LEDSet2D(leds_left,NUM_LEDS,NUM_LEDS,0,true);
-  right_forward=new LEDGraphics::LEDSet2D(leds_right,NUM_LEDS,0,NUM_LEDS,false);
-  right_backward=new LEDGraphics::LEDSet2D(leds_right,NUM_LEDS,NUM_LEDS,0,true);
+  left_backward=new LEDGraphics::LEDSet2D(leds_left,NUM_LEDS,0,NUM_LEDS-1,false);
+  left_forward=new LEDGraphics::LEDSet2D(leds_left,NUM_LEDS,NUM_LEDS-1,0,true);
+  right_backward=new LEDGraphics::LEDSet2D(leds_right,NUM_LEDS,0,NUM_LEDS-1,false);
+  right_forward=new LEDGraphics::LEDSet2D(leds_right,NUM_LEDS,NUM_LEDS-1,0,true);
   onboard=new LEDGraphics::LEDSet2D(onboard_led,1,0,0,true);
   
   Serial.println("7");
@@ -222,8 +222,8 @@ bool set_mode(Mode new_mode)
   {
     if(new_mode==DoubleCharging)
     {
-      Serial.println("Vol 1.5x");
-      mp3.setVol(BASELINE_VOLUME*1.5);
+      Serial.println("Vol 1.15x");
+      mp3.setVol(BASELINE_VOLUME*1.15);
       delay(20);
 
       special_start=current_time;
@@ -300,6 +300,7 @@ bool button_change()
     }    
     else
     {
+      Serial.println("Setting right firewave start time. " + (String)current_time);
       right_firewave.SetStartTime(current_time);
     }
   }
