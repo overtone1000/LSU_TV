@@ -38,8 +38,11 @@ namespace LEDGraphics
     CRGB** temp_leds = new CRGB*[total_LEDS];
 
     this->led_count=0;
-    while(next!=stop_led)
+    bool cont=true;
+    while(cont)
     {
+      cont=(next!=stop_led);
+      
       temp_leds[this->led_count]=next;
       this->led_count++;
 
