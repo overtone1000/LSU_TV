@@ -20,12 +20,12 @@ fauxmoESP fauxmo;
 CRGB leds[NUM_LEDS];
 //LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
 //LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
-LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,30,false);
-LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,0,true);
+LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,29,false);
+LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,29,0,true);
 
-LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,30,21,true);
-LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,20,11,true);
-LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,10,0,true);
+LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,29,20,true);
+LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,19,10,true);
+LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,9,0,true);
 
 String dev_gotigers = "Go Tigers";
 String dev_merica = "Merica";
@@ -36,7 +36,7 @@ enum Mode
   merica=2
 };
 
-Mode mode = merica;
+Mode mode = tigers;
 bool showleds = true;
 
 // This function sets up the ledsand tells the controller about them
@@ -80,15 +80,15 @@ void setup() {
   });
 }
 
-LEDGraphics::Wave w1(5000,4,NUM_LEDS,((float)NUM_LEDS));
-LEDGraphics::Wave w2(5000,15,NUM_LEDS/4,((float)NUM_LEDS));
+LEDGraphics::Wave w1(0.25,NUM_LEDS,1.0);
+LEDGraphics::Wave w2(0.25,NUM_LEDS/5,1.0);
 
-LEDGraphics::Wave m1(5000,15,NUM_LEDS/3,((float)10));
-LEDGraphics::Wave m2(5000,15,NUM_LEDS/3,((float)10));
-LEDGraphics::Wave m3(5000,15,NUM_LEDS/3,((float)10));
+LEDGraphics::Wave m1(0.5,NUM_LEDS/3,1.0);
+LEDGraphics::Wave m2(0.5,NUM_LEDS/3,1.0);
+LEDGraphics::Wave m3(0.5,NUM_LEDS/3,1.0);
 
-LEDGraphics::BlendBrush purple(CRGB::Purple, 1.0f);
-LEDGraphics::BlendBrush yellow(CRGB::Yellow, 1.0f);
+LEDGraphics::BlendBrush purple(CRGB::Purple, 0.5f);
+LEDGraphics::BlendBrush yellow(CRGB::Yellow, 0.5f);
 
 LEDGraphics::BlendBrush red(CRGB::Red,1.0f);
 LEDGraphics::BlendBrush white(CRGB::White,1.0f);
@@ -110,6 +110,7 @@ void loop() {
     {
       case Mode::tigers:
         w1.Paint(current_time,&ledset_1,&yellow); 
+        w2.Paint(current_time,&ledset_1,&purple); 
         //w1.CheckReset(current_time);
         //w2.CheckReset(current_time);
         //ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
