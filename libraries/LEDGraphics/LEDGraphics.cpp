@@ -208,4 +208,29 @@ namespace LEDGraphics
       brush->paint(led_set->ledArray()[n]);
     }
   }
+
+  Glow::Glow(float frequency, float wavelength_init, float highmag, float lowmag)
+  {
+    this->frequency=frequency;
+    this->wavelength_init=wavelength_init;
+    this->highmag=highmag;
+    this->lowmag=lowmag;
+  }
+
+  void Glow::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+  {
+    uint8_t angle = (this->wavelength_init + this->frequency*((float)(current_millis-0))/1000.0)*MAX_BYTE;
+    uint8_t brightness = cos8(angle);
+    float fraction = ((float)brightness/(float)MAX_BYTE);
+    float final_magnitude = this->lowmag*(1.0-fraction)+this->highmag*(fraction);
+    //Serial.println("Final magnitude is " + (String)final_magnitude);
+    brush->SetMagnitude(final_magnitude);
+
+    const unsigned int count = led_set->ledCount()-1;
+    unsigned int n;
+    for(n=0;n<count;n++)
+    {
+      brush->paint(led_set->ledArray()[n]);
+    }
+  }
 }

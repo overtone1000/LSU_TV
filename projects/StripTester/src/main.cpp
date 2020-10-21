@@ -2,7 +2,7 @@
 #include "LEDGraphics.h"
 
 // How many leds are in the strip?
-#define NUM_LEDS 200
+#define NUM_LEDS 202
 
 // Data pin that led data will be written out over
 #define DATA_PIN 14
@@ -20,8 +20,8 @@ LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,NUM_LEDS-1,0,true);
 // This function sets up the ledsand tells the controller about them
 
 int current_led=0;
-const int interval=500;
-int last_time=0;
+const unsigned long interval=1000;
+unsigned long last_time=0;
 
 void setup() {
 	// sanity check delay - allows reprogramming if accidently blowing power w/leds
@@ -39,18 +39,24 @@ void setup() {
 void loop() {
 
   unsigned long current_time = millis();
+  String serial_dat = Serial.readStringUntil('/n');
 
-  for(int n=0;n<NUM_LEDS;n++)
+  if(current_time>(last_time+interval))
   {
-    leds[n] = CRGB::Black;
-  }
-
-  if(current_time>last_time+interval)
-  {
+    for(int n=0;n<NUM_LEDS;n++)
+    {
+      leds[n] = CRGB::Black;
+    }
+    
     last_time=current_time;
-    les[current_led++]=CRGB::White;
-  }
+    Serial.println("Current led:" + (String)current_led);
+    leds[current_led++]=CRGB::White;
 
-  FastLED.show();
-  delay(100);
+    if(current_led>=NUM_LEDS)
+    {
+      current_led=0;
+    }
+
+    FastLED.show();
+  }
 }

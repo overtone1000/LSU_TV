@@ -86,6 +86,18 @@ namespace LEDGraphics
     Wave(float frequency, float wavelength, float magnitude);
     void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
   };
+
+  class Glow
+  {
+    private:
+    float frequency;
+    float wavelength_init;
+    float highmag;
+    float lowmag;
+    public:
+    Glow(float frequency, float wavelength_init, float highmag, float lowmag);
+    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
+  };
 }
 
 #endif

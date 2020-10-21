@@ -2,5 +2,8 @@
     "terminal.integrated.env.linux": {
         "PATH": "/home/tyler/.platformio/penv/bin:/home/tyler/.platformio/penv:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/jvm/java-11-oracle/bin:/usr/lib/jvm/java-11-oracle/db/bin",
         "PLATFORMIO_CALLER": "vscode"
+    },
+    "files.associations": {
+        "functional": "cpp"
     }
 }
