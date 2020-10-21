@@ -8,7 +8,10 @@ fauxmoESP fauxmo;
 #include "LEDGraphics.h"
 
 // How many leds are in the strip?
-#define NUM_LEDS 30
+#define NUM_LEDS 200
+#define NUM_HALF (NUM_LEDS/2)
+#define NUM_THIRD (NUM_LEDS/3)
+#define NUM_2THIRD (NUM_LEDS*2/3)
 
 // Data pin that led data will be written out over
 #define DATA_PIN 14
@@ -20,12 +23,12 @@ fauxmoESP fauxmo;
 CRGB leds[NUM_LEDS];
 //LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
 //LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
-LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,29,false);
-LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,29,0,true);
+LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,NUM_LEDS-1,false);
+LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,NUM_LEDS-1,0,true);
 
-LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,29,20,true);
-LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,19,10,true);
-LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,9,0,true);
+LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,NUM_LEDS-1,NUM_2THIRD,true);
+LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,NUM_2THIRD-1,NUM_THIRD,true);
+LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,NUM_THIRD-1,0,true);
 
 String dev_gotigers = "Go Tigers";
 String dev_merica = "Merica";
@@ -54,7 +57,7 @@ void setup() {
 
   //pinMode(DATA_PIN, OUTPUT);
   Serial.println("Adding LEDs");
-  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2811, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(60);
 
   Serial.println("Configuring Fauxmo");
@@ -109,7 +112,6 @@ void loop() {
     switch(mode)
     {
       case Mode::tigers:
-        Serial.println("Showing tigers...");
         w1.Paint(current_time,&ledset_1,&yellow); 
         w2.Paint(current_time,&ledset_1,&purple); 
         //w1.CheckReset(current_time);
