@@ -19,9 +19,16 @@ fauxmoESP fauxmo;
 // This is an array of leds.  One item for each led in your strip.
 CRGB leds[NUM_LEDS];
 
+LEDGraphics::LEDSet2D* outside[4];
 LEDGraphics::LEDSet2D* inside;
 
-LEDGraphics::LEDSet2D* outside[4];
+LEDGraphics::Glow* outer_glow[4];
+LEDGraphics::Glow* inner_glow;
+
+LEDGraphics::Hill* outer_wave[4];
+LEDGraphics::Wave* inner_wave;
+
+LEDGraphics::BlendBrush* partybrushes[4];
 
 String dev_intruders = "She-Ra Intruders";
 String dev_glow = "She-Ra Victory Glow";
@@ -55,6 +62,18 @@ void setup() {
   outside[1] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,126,90,true);
   outside[2] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,127,162,false);
   outside[3] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,197,163,true);
+
+  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.2, 1.0);
+  outer_glow[0] = new LEDGraphics::Glow(0.25, 0.0, 0.0, 1.0);
+  outer_glow[1] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
+  outer_glow[2] = new LEDGraphics::Glow(0.25, 0.5, 0.0, 1.0);
+  outer_glow[3] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 1.0);
+
+  inner_wave = new LEDGraphics::Wave(0.25, 5, 1.0);
+  outer_wave[0] = new LEDGraphics::Hill(0.25, 5, 0, 50);
+  outer_wave[1] = new LEDGraphics::Hill(0.5, 5, 0, 50);
+  outer_wave[2] = new LEDGraphics::Hill(0.2, 5, 0, 50);
+  outer_wave[3] = new LEDGraphics::Hill(0.7, 5, 0, 50);
 
   Serial.println("Starting WiFi for " + (String)SSID);
   WiFi.begin(SSID, WFPASS);
@@ -99,17 +118,9 @@ void setup() {
   });
 }
 
-LEDGraphics::Glow outer_glow0(0.25, 0.0, 0.0, 1.0);
-LEDGraphics::Glow outer_glow1(0.25, 0.25, 0.0, 1.0);
-LEDGraphics::Glow outer_glow2(0.25, 0.5, 0.0, 1.0);
-LEDGraphics::Glow outer_glow3(0.25, 0.75, 0.0, 1.0);
-
-LEDGraphics::Glow inner_glow(0.1, 0, 0.2, 1.0);
-
 LEDGraphics::BlendBrush blue(CRGB::Blue, 1.0f);
 LEDGraphics::BlendBrush white(CRGB::White, 1.0f);
 LEDGraphics::BlendBrush red(CRGB::Red, 1.0f);
-
 
 void loop() {
   fauxmo.handle();
@@ -138,23 +149,26 @@ void loop() {
     switch(mode)
     {
       case Mode::victory_glow:
-        outer_glow0.Paint(current_time,outside[0],&blue);
-        outer_glow1.Paint(current_time,outside[1],&blue);
-        outer_glow2.Paint(current_time,outside[2],&blue);
-        outer_glow3.Paint(current_time,outside[3],&blue);
+        for(int n=0;n<4;n++)
+        {
+          outer_glow[n]->UpdateAlong(current_time);
+          outer_glow[n]->Paint(outside[n],&blue);
+        }
         break;
       case Mode::take_the_prize:
-        outer_glow0.Paint(current_time,outside[0],&blue);
-        outer_glow1.Paint(current_time,outside[1],&blue);
-        outer_glow2.Paint(current_time,outside[2],&blue);
-        outer_glow3.Paint(current_time,outside[3],&blue);
-        inner_glow.Paint(current_time,inside,&white);
+        for(int n=0;n<4;n++)
+        {
+          outer_glow[n]->UpdateAlong(current_time);
+          outer_glow[n]->Paint(outside[n],&blue);
+        }
+        inner_glow->Paint(inside,&white);
         break;
       case Mode::intruders:
-        outer_glow0.Paint(current_time,outside[0],&red);
-        outer_glow1.Paint(current_time,outside[1],&red);
-        outer_glow2.Paint(current_time,outside[2],&red);
-        outer_glow3.Paint(current_time,outside[3],&red);
+        for(int n=0;n<4;n++)
+        {
+          outer_glow[n]->UpdateAlong(current_time);
+          outer_glow[n]->Paint(outside[n],&red);
+        }
         break;
       case Mode::party:
         break;

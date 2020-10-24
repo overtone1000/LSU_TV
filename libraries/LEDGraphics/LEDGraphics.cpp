@@ -2,6 +2,15 @@
 
 namespace LEDGraphics
 {
+  Brush::Brush(CRGB color){this->changeColor(color);}
+  void Brush::changeColor(CRGB color){this->color=color;}
+  void Brush::randomizeColor()
+  {
+    this->color.r=rand()%256;
+    this->color.g=rand()%256;
+    this->color.b=rand()%256;
+  }
+
   void BlendBrush::paint(CRGB* pixel)
   {
     for(int n=0;n<3;n++)
@@ -117,17 +126,15 @@ namespace LEDGraphics
   const int LEDSet2D::ledCount(){return this->led_count;}
 
   //void LEDSet2D::paint_wave(unsigned long current_millis, unsigned long start_millis, float wave_start, float wave_speed, float wave_width, MagnitudeBrush* brush)
-  void Hill::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+  void Hill::Paint(LEDSet2D* led_set, MagnitudeBrush* brush)
   {
-    //wave_speed is LEDs per second
-    //wave_width is LEDs
-    CheckReset(current_millis);
-
-    float last_x = speed*((float)(current_millis-start_millis))/1000.0F;
+    float along = this->CurrentAlong();
+    float last_x = this->start_led*(1.0-along) + this->stop_led*along;
+    //float last_x = speed*((float)(current_millis-start_millis))/1000.0F;
     float first_x = last_x-width;
 
-    int last_LED = floor(last_x);
-    int first_LED = ceil(first_x);
+    int last_LED = floor(this->stop_led);
+    int first_LED = ceil(this->start_led);
 
     if(last_LED>=led_set->ledCount()){last_LED=led_set->ledCount()-1;}
     if(first_LED<0){first_LED=0;}
@@ -141,55 +148,55 @@ namespace LEDGraphics
 
       brush->SetMagnitude((float)(MAX_BYTE-dim_factor)/(float)(MAX_BYTE));
       brush->paint(led_set->ledArray()[n]);
-      //*(leds[n]) = color;
-      //leds[n]->fadeLightBy(dim_factor);
-      //leds[n] = color; //This works perfectly, so the problem is with dimming.
-
-      //Serial.print((String)dim_factor + ", ");
     }
-    //Serial.println();
   }
 
-  void Hill::SetStartTime(unsigned long new_start_millis)
+  Hill::Hill(float frequency, float width, float start_led, float stop_led):PeriodicEffect(frequency,0)
   {
-    this->start_millis=new_start_millis;
-  }
-
-  unsigned long Hill::GetStartTime()
-  {
-    return start_millis;
-  }
-
-  Hill::Hill(unsigned long start_millis, float speed, float width, float LED_count)
-  {
-    this->start_millis=start_millis;
-    this->speed=speed;
     this->width=width;
-    this->LED_count = LED_count;
+    this->start_led=start_led;
+    this->stop_led=stop_led;
   }
 
-  void Hill::CheckReset(unsigned long current_time)
+  PeriodicEffect::PeriodicEffect(float frequency, float along_init)
   {
-    float passed = ((float)(current_time-start_millis))*speed/1000.0F;
-    float total = LED_count+width;
-    if(passed>total)
-    {
-      //Serial.println((String)passed + "/" + (String)total);
-      //Serial.println("Restarting wave.");
-      start_millis=current_time;
-    }
+    this->period_millis=abs(round(1000.0f/frequency));
+    this->along_init=along_init*MAX_BYTE;
+    this->finished=false;
+    this->last_along=along_init*MAX_BYTE;
   }
 
-  Wave::Wave(float frequency, float wavelength, float magnitude)
+  boolean PeriodicEffect::Finished()
+  {
+    return this->finished;
+  }
+
+  void PeriodicEffect::UpdateAlong(unsigned long current_millis)
+  {
+    this->last_along=this->this_along;
+    this->this_along=((float)(current_millis%this->period_millis)/(float)this->period_millis)*MAX_BYTE;
+    this->finished=this->this_along < this->last_along;
+  }
+
+  float PeriodicEffect::CurrentAlong()
+  {
+    float along = this->this_along+this->along_init;
+    return along-floor(along);
+  }
+
+  uint8_t PeriodicEffect::CurrentAngle()
+  {
+    return round(this->CurrentAlong()*((float)MAX_BYTE));
+  }
+
+  Wave::Wave(float frequency, float wavelength, float magnitude):PeriodicEffect(frequency,0.0)
   {
     this->magnitude=magnitude;
-    this->wavelength=wavelength;
-    this->wave_millis=round(1000.0f/frequency);
+    this->wavelength=wavelength; 
   }
-  void Wave::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+
+  void Wave::Paint(LEDSet2D* led_set, MagnitudeBrush* brush)
   {
-    uint8_t init_angle = (float)(current_millis%wave_millis)/(float)wave_millis*MAX_BYTE;
-    
     //Serial.println("Starting paint with LEDSet " + led_set->GetDebugName() + ". Set contains " + led_set->ledCount() + " LEDs.");
     //Serial.println("Initial angle = " + (String)init_angle);
 
@@ -200,7 +207,7 @@ namespace LEDGraphics
       float along_wave = (float)n/wavelength;
       //Serial.println("Along wave is " + (String)along_wave);
       uint8_t add_angle = MAX_BYTE*along_wave;
-      uint8_t total_angle = init_angle+add_angle;
+      uint8_t total_angle = this->CurrentAngle()+add_angle;
       uint8_t brightness = cos8(total_angle);
       float final_magnitude = ((float)brightness/(float)MAX_BYTE)*this->magnitude;
       //Serial.println("Final magnitude is " + (String)final_magnitude);
@@ -209,18 +216,15 @@ namespace LEDGraphics
     }
   }
 
-  Glow::Glow(float frequency, float wavelength_init, float highmag, float lowmag)
+  Glow::Glow(float frequency, float angle_init, float highmag, float lowmag):PeriodicEffect(frequency,angle_init)
   {
-    this->frequency=frequency;
-    this->wavelength_init=wavelength_init;
     this->highmag=highmag;
     this->lowmag=lowmag;
   }
 
-  void Glow::Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush)
+  void Glow::Paint(LEDSet2D* led_set, MagnitudeBrush* brush)
   {
-    uint8_t angle = (this->wavelength_init + this->frequency*((float)(current_millis-0))/1000.0)*MAX_BYTE;
-    uint8_t brightness = cos8(angle);
+    uint8_t brightness = cos8(this->CurrentAngle());
     float fraction = ((float)brightness/(float)MAX_BYTE);
     float final_magnitude = this->lowmag*(1.0-fraction)+this->highmag*(fraction);
     //Serial.println("Final magnitude is " + (String)final_magnitude);

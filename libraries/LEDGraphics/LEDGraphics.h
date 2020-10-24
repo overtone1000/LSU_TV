@@ -12,7 +12,9 @@ namespace LEDGraphics
   class Brush
   {
   public:
-    Brush(CRGB color){this->color=color;}
+    Brush(CRGB color);
+    void changeColor(CRGB color);
+    void randomizeColor();
     virtual void paint(CRGB* pixel)=0;
   protected:
     CRGB color=CRGB::Black;
@@ -59,44 +61,56 @@ namespace LEDGraphics
     char* debug_name=nullptr;
   };
 
-  class Hill
+  class PeriodicEffect
+  {
+    private:
+    unsigned long period_millis;
+    float along_init;
+    float last_along;
+    float this_along;
+
+    boolean finished;
+
+    public:
+    PeriodicEffect(float frequency, float along_init);
+    boolean Finished();
+    void UpdateAlong(unsigned long current_millis);
+    float CurrentAlong();
+    uint8_t CurrentAngle();
+  };
+
+  class Hill:public PeriodicEffect
   {
     private:
     unsigned long start_millis;
-    float speed;
     float width;
-    float LED_count;
-    void CheckReset(unsigned long current_time);
+    float start_led;
+    float stop_led;
 
     public:
-    Hill(unsigned long start_millis, float speed, float width, float LED_count);
-    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
-    void SetStartTime(unsigned long new_start_millis);
-    unsigned long GetStartTime();
-  };
+    Hill(float frequency, float speed, float width, float LED_count);
+    void Paint(LEDSet2D* led_set, MagnitudeBrush* brush);
+  };  
 
-  class Wave
+  class Wave:public PeriodicEffect
   {
     private:
     unsigned long wave_millis;
-    float wavelength;
     float magnitude;
-
+    float wavelength;
     public:
     Wave(float frequency, float wavelength, float magnitude);
-    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
+    void Paint(LEDSet2D* led_set, MagnitudeBrush* brush);
   };
 
-  class Glow
+  class Glow:public PeriodicEffect
   {
     private:
-    float frequency;
-    float wavelength_init;
     float highmag;
     float lowmag;
     public:
-    Glow(float frequency, float wavelength_init, float highmag, float lowmag);
-    void Paint(unsigned long current_millis, LEDSet2D* led_set, MagnitudeBrush* brush);
+    Glow(float frequency, float angle_init, float highmag, float lowmag);
+    void Paint(LEDSet2D* led_set, MagnitudeBrush* brush);
   };
 }
 
