@@ -88,7 +88,7 @@ namespace LEDGraphics
     float stop_led;
 
     public:
-    Hill(float frequency, float speed, float width, float LED_count);
+    Hill(float frequency, float width, float start_led, float stop_led);
     void Paint(LEDSet2D* led_set, MagnitudeBrush* brush);
   };  
 

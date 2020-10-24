@@ -9,6 +9,10 @@ namespace LEDGraphics
     this->color.r=rand()%256;
     this->color.g=rand()%256;
     this->color.b=rand()%256;
+
+    //Serial.println("Color is " + (String)this->color.r
+    //+","+(String)this->color.g
+    //+","+(String)this->color.b);
   }
 
   void BlendBrush::paint(CRGB* pixel)
@@ -133,8 +137,11 @@ namespace LEDGraphics
     //float last_x = speed*((float)(current_millis-start_millis))/1000.0F;
     float first_x = last_x-width;
 
-    int last_LED = floor(this->stop_led);
-    int first_LED = ceil(this->start_led);
+    int last_LED = floor(last_x);
+    int first_LED = ceil(first_x);
+
+    //Serial.println("LEDs are " + (String) first_LED + "," + (String) last_LED);
+    
 
     if(last_LED>=led_set->ledCount()){last_LED=led_set->ledCount()-1;}
     if(first_LED<0){first_LED=0;}
@@ -174,19 +181,24 @@ namespace LEDGraphics
   void PeriodicEffect::UpdateAlong(unsigned long current_millis)
   {
     this->last_along=this->this_along;
-    this->this_along=((float)(current_millis%this->period_millis)/(float)this->period_millis)*MAX_BYTE;
+    this->this_along=((float)(current_millis%this->period_millis)/(float)this->period_millis);
     this->finished=this->this_along < this->last_along;
   }
 
   float PeriodicEffect::CurrentAlong()
   {
     float along = this->this_along+this->along_init;
-    return along-floor(along);
+    float retval = along-floor(along);
+    //Serial.println("Current along is " + (String)(retval));
+    return retval;
   }
 
   uint8_t PeriodicEffect::CurrentAngle()
   {
-    return round(this->CurrentAlong()*((float)MAX_BYTE));
+    uint8_t retval = round(this->CurrentAlong()*((float)MAX_BYTE));
+    //Serial.println("Current angle is " + retval);
+    return retval;
+
   }
 
   Wave::Wave(float frequency, float wavelength, float magnitude):PeriodicEffect(frequency,0.0)
