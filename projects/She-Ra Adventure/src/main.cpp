@@ -35,10 +35,10 @@ LEDGraphics::Wave* inner_wave;
 LEDGraphics::BlendBrush* partybrushes[4];
 
 #define DEVICE_COUNT 4
-const char* dev_intruders = "She-Ra Intruders";
-const char* dev_glow = "She-Ra Victory Glow";
-const char* dev_prize = "She-Ra Prize";
-const char* dev_party ="She-Ra Party";
+const char* dev_intruders = "SR Intruders";
+const char* dev_glow = "SR Victory Glow";
+const char* dev_prize = "SR Prize";
+const char* dev_party ="SR Party";
 const char* devs[] = {dev_intruders, dev_glow, dev_prize, dev_party};
 
 enum Mode
@@ -79,7 +79,7 @@ void setup() {
     outside_is_forward[n]=true;
   }
 
-  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.2, 1.0);
+  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.1, 1.0);
   outer_glow[0] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 1.0);
   outer_glow[1] = new LEDGraphics::Glow(0.25, 0.7, 0.0, 1.0);
   outer_glow[2] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
@@ -95,6 +95,7 @@ void setup() {
 
   Serial.println("Starting WiFi for " + (String)SSID);
   WiFi.begin(SSID, WFPASS);
+  
 
   //pinMode(DATA_PIN, OUTPUT);
   Serial.println("Adding LEDs");
@@ -149,6 +150,14 @@ void setup() {
         last_mode_change_time=millis();
       }
   });
+
+  // Wait for connection
+  Serial.println("Waiting for WiFi.");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("Connected. IP is " + WiFi.localIP().toString());
 }
 
 LEDGraphics::BlendBrush blue(CRGB::Blue, 1.0f);
@@ -197,6 +206,7 @@ void loop() {
           outer_glow[n]->UpdateAlong(current_time);
           outer_glow[n]->Paint(outside_forward[n],&blue);
         }
+        inner_glow->UpdateAlong(current_time);
         inner_glow->Paint(inside,&white);
         break;
       case Mode::intruders:

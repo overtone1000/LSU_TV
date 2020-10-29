@@ -12,7 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/projects/She-Ra Adventure/.pio/build/nodemcu/firmware.elf",
+            "executable": "/home/tyler/Documents/Git Repositories/NeopixelGraphics/projects/She-Ra Adventure/.pio/build/nodemcu/firmware.elf",
             "toolchainBinDir": "/home/tyler/.platformio/packages/toolchain-xtensa/bin",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -24,7 +24,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/home/tyler/Dropbox/My Programs/Git Repositories/NeoPixelProjects/projects/She-Ra Adventure/.pio/build/nodemcu/firmware.elf",
+            "executable": "/home/tyler/Documents/Git Repositories/NeopixelGraphics/projects/She-Ra Adventure/.pio/build/nodemcu/firmware.elf",
             "toolchainBinDir": "/home/tyler/.platformio/packages/toolchain-xtensa/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }

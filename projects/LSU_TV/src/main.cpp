@@ -37,7 +37,7 @@ enum Mode
 };
 
 Mode mode = tigers;
-bool showleds = true;
+bool showleds = false;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -78,6 +78,14 @@ void setup() {
       }
       Serial.println("Device " + modestr + " is " + (String)state);
   });
+
+    // Wait for connection
+  Serial.println("Waiting for WiFi.");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("Connected. IP is " + WiFi.localIP().toString());
 }
 
 LEDGraphics::Wave w1(0.25,NUM_LEDS,1.0);
@@ -110,17 +118,17 @@ void loop() {
     {
       case Mode::tigers:
         Serial.println("Showing tigers...");
-        w1.Paint(current_time,&ledset_1,&yellow); 
-        w2.Paint(current_time,&ledset_1,&purple); 
+        //w1.Paint(current_time,&ledset_1,&yellow); 
+        //w2.Paint(current_time,&ledset_1,&purple); 
         //w1.CheckReset(current_time);
         //w2.CheckReset(current_time);
         //ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
         //ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
         break;
       case Mode::merica:
-        m1.Paint(current_time,&ledset_m1,&red); 
-        m2.Paint(current_time,&ledset_m2,&white); 
-        m3.Paint(current_time,&ledset_m3,&blue); 
+        //m1.Paint(current_time,&ledset_m1,&red); 
+        //m2.Paint(current_time,&ledset_m2,&white); 
+        //m3.Paint(current_time,&ledset_m3,&blue); 
         //m1.CheckReset(current_time);
         //m2.CheckReset(current_time);
         //m3.CheckReset(current_time);
