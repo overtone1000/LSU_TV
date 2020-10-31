@@ -105,6 +105,7 @@
                 "ARDUINO_ESP8266_NODEMCU",
                 "PIO_FRAMEWORK_ARDUINO_LWIP_HIGHER_BANDWIDTH",
                 "NDEBUG",
+                "DEBUG_FAUXMO=Serial",
                 "F_CPU=80000000L",
                 "__ets__",
                 "ICACHE_FLASH",

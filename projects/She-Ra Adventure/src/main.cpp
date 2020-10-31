@@ -19,21 +19,27 @@ fauxmoESP fauxmo;
 // This is an array of leds.  One item for each led in your strip.
 CRGB leds[NUM_LEDS];
 
-LEDGraphics::LEDSet2D* outside[4];
+LEDGraphics::LEDSet2D* outside_forward[4];
+LEDGraphics::LEDSet2D* outside_backward[4];
+boolean outside_is_forward[4];
 LEDGraphics::LEDSet2D* inside;
 
 LEDGraphics::Glow* outer_glow[4];
 LEDGraphics::Glow* inner_glow;
+
+LEDGraphics::Glow* party_glow;
 
 LEDGraphics::Hill* outer_wave[4];
 LEDGraphics::Wave* inner_wave;
 
 LEDGraphics::BlendBrush* partybrushes[4];
 
-String dev_intruders = "She-Ra Intruders";
-String dev_glow = "She-Ra Victory Glow";
-String dev_prize = "She-Ra Prize";
-String dev_party ="She-Ra Party";
+#define DEVICE_COUNT 4
+const char* dev_intruders = "SR Intruders";
+const char* dev_glow = "SR Victory Glow";
+const char* dev_prize = "SR Prize";
+const char* dev_party ="SR Party";
+const char* devs[] = {dev_intruders, dev_glow, dev_prize, dev_party};
 
 enum Mode
 {
@@ -44,7 +50,7 @@ enum Mode
 };
 
 Mode mode = intruders;
-bool showleds = true;
+bool showleds = false;
 
 unsigned long last_mode_change_time=0;
 const float ramp_time=2000.0f;
@@ -58,16 +64,28 @@ void setup() {
   
   inside = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,0,48,false);
 
-  outside[0] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,53,89,false);
-  outside[1] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,126,90,true);
-  outside[2] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,127,162,false);
-  outside[3] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,197,163,true);
+  outside_forward[0] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,53,89,false);
+  outside_forward[1] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,126,90,true);
+  outside_forward[2] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,127,162,false);
+  outside_forward[3] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,197,163,true);
 
-  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.2, 1.0);
-  outer_glow[0] = new LEDGraphics::Glow(0.25, 0.0, 0.0, 1.0);
-  outer_glow[1] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
-  outer_glow[2] = new LEDGraphics::Glow(0.25, 0.5, 0.0, 1.0);
-  outer_glow[3] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 1.0);
+  outside_backward[0] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,89,53,true);
+  outside_backward[1] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,90,126,false);
+  outside_backward[2] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,162,127,true);
+  outside_backward[3] = new LEDGraphics::LEDSet2D(leds,NUM_LEDS,163,197,false);
+
+  for(int n=0;n<4;n++)
+  {
+    outside_is_forward[n]=true;
+  }
+
+  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.1, 1.0);
+  outer_glow[0] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 1.0);
+  outer_glow[1] = new LEDGraphics::Glow(0.25, 0.7, 0.0, 1.0);
+  outer_glow[2] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
+  outer_glow[3] = new LEDGraphics::Glow(0.25, 0, 0.0, 1.0);
+
+  party_glow = new LEDGraphics::Glow(2, 0, 0, 1.0);
 
   inner_wave = new LEDGraphics::Wave(0.25, 5, 1.0);
   outer_wave[0] = new LEDGraphics::Hill(0.25, 5, 0, 50);
@@ -77,6 +95,7 @@ void setup() {
 
   Serial.println("Starting WiFi for " + (String)SSID);
   WiFi.begin(SSID, WFPASS);
+  
 
   //pinMode(DATA_PIN, OUTPUT);
   Serial.println("Adding LEDs");
@@ -85,10 +104,10 @@ void setup() {
   
 
   Serial.println("Configuring Fauxmo");
-  fauxmo.addDevice(dev_glow.c_str());
-  fauxmo.addDevice(dev_prize.c_str());
-  fauxmo.addDevice(dev_intruders.c_str());
-  fauxmo.addDevice(dev_party.c_str());
+  fauxmo.addDevice(dev_glow);
+  fauxmo.addDevice(dev_prize);
+  fauxmo.addDevice(dev_intruders);
+  fauxmo.addDevice(dev_party);
 
   fauxmo.setPort(80); // required for gen3 devices
   fauxmo.enable(true);
@@ -96,6 +115,7 @@ void setup() {
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
       showleds=state;
+<<<<<<< HEAD
       if(strcmp(device_name,dev_glow))
       {
         mode=Mode::victory_glow;
@@ -109,17 +129,59 @@ void setup() {
         mode=Mode::intruders;
       }
       if(strcmp(device_name,dev_party))
-      {
-        mode=Mode::party;
-      }
+=======
+      String modestr = (String)device_name;
       Serial.println("Device " + modestr + " is " + (String)state);
-      last_mode_change_time=millis();
+
+      if(state)
+>>>>>>> 79adcc572616458eeb1eb266a8e748770fa916c4
+      {
+        for(int n=0;n<DEVICE_COUNT;n++)
+        {
+          if(strcmp(devs[n],device_name)!=0)
+          {
+            Serial.println("Turning off " + (String)devs[n]);
+            fauxmo.setState(devs[n],false,'0');
+          }
+        }
+
+
+        if(modestr.equals(dev_glow))
+        {
+          mode=Mode::victory_glow;
+        }
+        else if(modestr.equals(dev_prize))
+        {
+          mode=Mode::take_the_prize;
+        }
+        else if(modestr.equals(dev_intruders))
+        {
+          mode=Mode::intruders;
+        }
+        else if(modestr.equals(dev_party))
+        {
+          mode=Mode::party;
+        }
+
+        last_mode_change_time=millis();
+      }
   });
+
+  // Wait for connection
+  Serial.println("Waiting for WiFi.");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("Connected. IP is " + WiFi.localIP().toString());
 }
 
 LEDGraphics::BlendBrush blue(CRGB::Blue, 1.0f);
 LEDGraphics::BlendBrush white(CRGB::White, 1.0f);
 LEDGraphics::BlendBrush red(CRGB::Red, 1.0f);
+LEDGraphics::BlendBrush gold(CRGB::Gold, 1.0f);
+
+LEDGraphics::BlendBrush randombrush(CRGB::White, 1.0f);
 
 void loop() {
   fauxmo.handle();
@@ -129,7 +191,7 @@ void loop() {
   float ramp = ((float)(current_time-last_mode_change_time))/ramp_time;
   if(ramp>1.0f){ramp=1.0f;}
   FastLED.setBrightness(MAX_BYTE*ramp);
-  Serial.println("Brightness is " + (String)(MAX_BYTE*ramp));
+  //Serial.println("Brightness is " + (String)(MAX_BYTE*ramp));
 
   for(int n=0;n<NUM_LEDS;n++)
   {
@@ -151,25 +213,46 @@ void loop() {
         for(int n=0;n<4;n++)
         {
           outer_glow[n]->UpdateAlong(current_time);
-          outer_glow[n]->Paint(outside[n],&blue);
+          outer_glow[n]->Paint(outside_forward[n],&gold);
         }
         break;
       case Mode::take_the_prize:
         for(int n=0;n<4;n++)
         {
           outer_glow[n]->UpdateAlong(current_time);
-          outer_glow[n]->Paint(outside[n],&blue);
+          outer_glow[n]->Paint(outside_forward[n],&blue);
         }
+        inner_glow->UpdateAlong(current_time);
         inner_glow->Paint(inside,&white);
         break;
       case Mode::intruders:
         for(int n=0;n<4;n++)
         {
-          outer_glow[n]->UpdateAlong(current_time);
-          outer_glow[n]->Paint(outside[n],&red);
+          outer_wave[n]->UpdateAlong(current_time);
+          if(outer_wave[n]->Finished())
+          {
+            outside_is_forward[n]=!outside_is_forward[n];
+          }
+          if(outside_is_forward[n])
+          {
+            outer_wave[n]->Paint(outside_forward[n],&red);
+          }
+          else
+          {
+            outer_wave[n]->Paint(outside_backward[n],&red);
+          }
         }
         break;
       case Mode::party:
+        party_glow->UpdateAlong(current_time);
+        if(party_glow->Finished())
+        {
+          randombrush.randomizeColor();
+        }
+        for(int n=0;n<4;n++)
+        {
+          party_glow->Paint(outside_forward[n],&randombrush);
+        }
         break;
     }
 
