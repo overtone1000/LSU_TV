@@ -115,7 +115,6 @@ void setup() {
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
       showleds=state;
-<<<<<<< HEAD
       if(strcmp(device_name,dev_glow))
       {
         mode=Mode::victory_glow;
@@ -129,12 +128,10 @@ void setup() {
         mode=Mode::intruders;
       }
       if(strcmp(device_name,dev_party))
-=======
       String modestr = (String)device_name;
       Serial.println("Device " + modestr + " is " + (String)state);
 
       if(state)
->>>>>>> 79adcc572616458eeb1eb266a8e748770fa916c4
       {
         for(int n=0;n<DEVICE_COUNT;n++)
         {

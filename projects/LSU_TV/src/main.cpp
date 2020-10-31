@@ -67,9 +67,9 @@ void setup() {
   fauxmo.setPort(80); // required for gen3 devices
   fauxmo.enable(true);
 
-  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
-      String thisdev(device_name);
+  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {      
       showleds=state;
+      Serial.println("Received onSetState." + (String)device_id + (String)device_name + (String)state + (String)value);
       if(strcmp(device_name,dev_gotigers)==0)
       {
         mode=Mode::tigers;
@@ -142,10 +142,12 @@ void loop() {
         m3.Paint(&ledset_m3,&blue); 
         break;
       case Mode::sr_message:
-        w1.UpdateAlong(current_time);
-        w2.UpdateAlong(current_time);
-        w1.Paint(&ledset_1,&blue); 
-        w2.Paint(&ledset_1,&blue);
+        m1.UpdateAlong(current_time);
+        m2.UpdateAlong(current_time);
+        m3.UpdateAlong(current_time);
+        m1.Paint(&ledset_m1,&blue); 
+        m2.Paint(&ledset_m2,&blue); 
+        m3.Paint(&ledset_m3,&blue); 
     }
 
 
