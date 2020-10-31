@@ -96,20 +96,19 @@ void setup() {
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
       showleds=state;
-      String modestr = (String)device_name;
-      if(modestr.equals(dev_glow))
+      if(strcmp(device_name,dev_glow))
       {
         mode=Mode::victory_glow;
       }
-      else if(modestr.equals(dev_prize))
+      if(strcmp(device_name,dev_prize))
       {
         mode=Mode::take_the_prize;
       }
-      else if(modestr.equals(dev_intruders))
+      if(strcmp(device_name,dev_intruders))
       {
         mode=Mode::intruders;
       }
-      else if(modestr.equals(dev_party))
+      if(strcmp(device_name,dev_party))
       {
         mode=Mode::party;
       }

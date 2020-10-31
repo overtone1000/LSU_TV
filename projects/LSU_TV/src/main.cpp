@@ -27,17 +27,19 @@ LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,29,20,true);
 LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,19,10,true);
 LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,9,0,true);
 
-String dev_gotigers = "Go Tigers";
-String dev_merica = "Merica";
+const char* dev_gotigers = "Go Tigers";
+const char* dev_merica = "Merica";
+const char* dev_sheramessage = "SR Message";
 
 enum Mode
 {
   tigers=1,
-  merica=2
+  merica=2,
+  sr_message=3
 };
 
 Mode mode = tigers;
-bool showleds = true;
+bool showleds = false;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -58,8 +60,9 @@ void setup() {
   FastLED.setBrightness(60);
 
   Serial.println("Configuring Fauxmo");
-  fauxmo.addDevice(dev_gotigers.c_str());
-  fauxmo.addDevice(dev_merica.c_str());
+  //fauxmo.addDevice(dev_gotigers);
+  //fauxmo.addDevice(dev_merica);
+  fauxmo.addDevice(dev_sheramessage);
 
   fauxmo.setPort(80); // required for gen3 devices
   fauxmo.enable(true);
@@ -67,16 +70,19 @@ void setup() {
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
       showleds=state;
-      String modestr = (String)device_name;
-      if(modestr.equals(dev_gotigers))
+      if(strcmp(device_name,dev_gotigers)==0)
       {
         mode=Mode::tigers;
       }
-      else if(modestr.equals(dev_merica))
+      else if(strcmp(device_name,dev_merica)==0)
       {
         mode=Mode::merica;
       }
-      Serial.println("Device " + modestr + " is " + (String)state);
+      else if(strcmp(device_name,dev_sheramessage)==0)
+      {
+        mode=Mode::sr_message;
+      }
+      Serial.println("Device " + (String)device_name + " is " + (String)state);
   });
 }
 
@@ -110,24 +116,28 @@ void loop() {
     {
       case Mode::tigers:
         Serial.println("Showing tigers...");
-        w1.Paint(current_time,&ledset_1,&yellow); 
-        w2.Paint(current_time,&ledset_1,&purple); 
+        w1.UpdateAlong(current_time);
+        w2.UpdateAlong(current_time);
+        w1.Paint(&ledset_1,&yellow); 
+        w2.Paint(&ledset_1,&purple); 
         //w1.CheckReset(current_time);
         //w2.CheckReset(current_time);
         //ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
         //ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
         break;
       case Mode::merica:
-        m1.Paint(current_time,&ledset_m1,&red); 
-        m2.Paint(current_time,&ledset_m2,&white); 
-        m3.Paint(current_time,&ledset_m3,&blue); 
-        //m1.CheckReset(current_time);
-        //m2.CheckReset(current_time);
-        //m3.CheckReset(current_time);
-        //ledset_m1.paint_wave(current_time,m1.start_millis,0,m1.speed,m1.width,&red);
-        //ledset_m2.paint_wave(current_time,m2.start_millis,0,m2.speed,m2.width,&white);
-        //ledset_m3.paint_wave(current_time,m3.start_millis,0,m3.speed,m3.width,&blue);
+        m1.UpdateAlong(current_time);
+        m2.UpdateAlong(current_time);
+        m3.UpdateAlong(current_time);
+        m1.Paint(&ledset_m1,&red); 
+        m2.Paint(&ledset_m2,&white); 
+        m3.Paint(&ledset_m3,&blue); 
         break;
+      case Mode::sr_message:
+        w1.UpdateAlong(current_time);
+        w2.UpdateAlong(current_time);
+        w1.Paint(&ledset_1,&blue); 
+        w2.Paint(&ledset_1,&blue);
     }
 
 
