@@ -124,39 +124,22 @@ void loop() {
     {
       case Mode::tigers:
         Serial.println("Showing tigers...");
-<<<<<<< HEAD
         w1.UpdateAlong(current_time);
         w2.UpdateAlong(current_time);
         w1.Paint(&ledset_1,&yellow); 
         w2.Paint(&ledset_1,&purple); 
-=======
-        //w1.Paint(current_time,&ledset_1,&yellow); 
-        //w2.Paint(current_time,&ledset_1,&purple); 
->>>>>>> 79adcc572616458eeb1eb266a8e748770fa916c4
         //w1.CheckReset(current_time);
         //w2.CheckReset(current_time);
         //ledset_2.paint_wave(current_time,w1.start_millis,0,w1.speed,w1.width,&purple);
         //ledset_1.paint_wave(current_time,w2.start_millis,0,w2.speed,w2.width,&yellow);
         break;
       case Mode::merica:
-<<<<<<< HEAD
         m1.UpdateAlong(current_time);
         m2.UpdateAlong(current_time);
         m3.UpdateAlong(current_time);
         m1.Paint(&ledset_m1,&red); 
         m2.Paint(&ledset_m2,&white); 
         m3.Paint(&ledset_m3,&blue); 
-=======
-        //m1.Paint(current_time,&ledset_m1,&red); 
-        //m2.Paint(current_time,&ledset_m2,&white); 
-        //m3.Paint(current_time,&ledset_m3,&blue); 
-        //m1.CheckReset(current_time);
-        //m2.CheckReset(current_time);
-        //m3.CheckReset(current_time);
-        //ledset_m1.paint_wave(current_time,m1.start_millis,0,m1.speed,m1.width,&red);
-        //ledset_m2.paint_wave(current_time,m2.start_millis,0,m2.speed,m2.width,&white);
-        //ledset_m3.paint_wave(current_time,m3.start_millis,0,m3.speed,m3.width,&blue);
->>>>>>> 79adcc572616458eeb1eb266a8e748770fa916c4
         break;
       case Mode::sr_message:
         w1.UpdateAlong(current_time);
