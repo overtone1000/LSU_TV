@@ -43,10 +43,10 @@ const char* devs[] = {dev_intruders, dev_glow, dev_prize, dev_party};
 
 enum Mode
 {
-  victory_glow=1,
-  take_the_prize=2,
-  intruders=3,
-  party=4
+  victory_glow,
+  take_the_prize,
+  intruders,
+  party
 };
 
 Mode mode = intruders;
@@ -54,6 +54,8 @@ bool showleds = false;
 
 unsigned long last_mode_change_time=0;
 const float ramp_time=2000.0f;
+
+float warriors_frequency=2.4; //(144 bpm), was 2.42575458294 done manually
 
 
 // This function sets up the ledsand tells the controller about them
@@ -85,7 +87,7 @@ void setup() {
   outer_glow[2] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
   outer_glow[3] = new LEDGraphics::Glow(0.25, 0, 0.0, 1.0);
 
-  party_glow = new LEDGraphics::Glow(2, 0, 0, 1.0);
+  party_glow = new LEDGraphics::Glow(warriors_frequency, 0, 0, 1.0);
 
   inner_wave = new LEDGraphics::Wave(0.25, 5, 1.0);
   outer_wave[0] = new LEDGraphics::Hill(0.25, 5, 0, 50);
@@ -115,19 +117,7 @@ void setup() {
   fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
       String thisdev(device_name);
       showleds=state;
-      if(strcmp(device_name,dev_glow))
-      {
-        mode=Mode::victory_glow;
-      }
-      if(strcmp(device_name,dev_prize))
-      {
-        mode=Mode::take_the_prize;
-      }
-      if(strcmp(device_name,dev_intruders))
-      {
-        mode=Mode::intruders;
-      }
-      if(strcmp(device_name,dev_party))
+      
       String modestr = (String)device_name;
       Serial.println("Device " + modestr + " is " + (String)state);
 
@@ -140,27 +130,21 @@ void setup() {
             Serial.println("Turning off " + (String)devs[n]);
             fauxmo.setState(devs[n],false,'0');
           }
-        }
+          else
+          {
+            Mode lastmode=mode;
+            mode=(Mode)n;
 
-
-        if(modestr.equals(dev_glow))
-        {
-          mode=Mode::victory_glow;
+            if(lastmode==Mode::victory_glow && mode==Mode::take_the_prize)
+            {
+              //Don't reset last_mode_change_time in this case
+            }
+            else
+            {
+              last_mode_change_time=millis();
+            }
+          }
         }
-        else if(modestr.equals(dev_prize))
-        {
-          mode=Mode::take_the_prize;
-        }
-        else if(modestr.equals(dev_intruders))
-        {
-          mode=Mode::intruders;
-        }
-        else if(modestr.equals(dev_party))
-        {
-          mode=Mode::party;
-        }
-
-        last_mode_change_time=millis();
       }
   });
 
