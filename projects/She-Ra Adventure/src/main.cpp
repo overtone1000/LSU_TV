@@ -43,9 +43,9 @@ const char* devs[] = {dev_intruders, dev_glow, dev_prize, dev_party};
 
 enum Mode
 {
+  intruders,
   victory_glow,
   take_the_prize,
-  intruders,
   party
 };
 
@@ -53,7 +53,7 @@ Mode mode = intruders;
 bool showleds = false;
 
 unsigned long last_mode_change_time=0;
-const float ramp_time=2000.0f;
+float ramp_time=2000.0f;
 
 float warriors_frequency=2.4; //(144 bpm), was 2.42575458294 done manually
 
@@ -81,11 +81,11 @@ void setup() {
     outside_is_forward[n]=true;
   }
 
-  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.1, 1.0);
-  outer_glow[0] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 1.0);
-  outer_glow[1] = new LEDGraphics::Glow(0.25, 0.7, 0.0, 1.0);
-  outer_glow[2] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 1.0);
-  outer_glow[3] = new LEDGraphics::Glow(0.25, 0, 0.0, 1.0);
+  inner_glow = new LEDGraphics::Glow(0.1, 0, 0.1, 0.8);
+  outer_glow[0] = new LEDGraphics::Glow(0.25, 0.75, 0.0, 0.8);
+  outer_glow[1] = new LEDGraphics::Glow(0.25, 0.7, 0.0, 0.8);
+  outer_glow[2] = new LEDGraphics::Glow(0.25, 0.25, 0.0, 0.8);
+  outer_glow[3] = new LEDGraphics::Glow(0.25, 0, 0.0, 0.8);
 
   party_glow = new LEDGraphics::Glow(warriors_frequency, 0, 0, 1.0);
 
@@ -106,9 +106,9 @@ void setup() {
   
 
   Serial.println("Configuring Fauxmo");
+  fauxmo.addDevice(dev_intruders);
   fauxmo.addDevice(dev_glow);
   fauxmo.addDevice(dev_prize);
-  fauxmo.addDevice(dev_intruders);
   fauxmo.addDevice(dev_party);
 
   fauxmo.setPort(80); // required for gen3 devices
@@ -118,8 +118,7 @@ void setup() {
       String thisdev(device_name);
       showleds=state;
       
-      String modestr = (String)device_name;
-      Serial.println("Device " + modestr + " is " + (String)state);
+      Serial.println("Device " + thisdev + " bool is " + (String)state);
 
       if(state)
       {
@@ -132,20 +131,30 @@ void setup() {
           }
           else
           {
-            Mode lastmode=mode;
-            mode=(Mode)n;
-
-            if(lastmode==Mode::victory_glow && mode==Mode::take_the_prize)
-            {
-              //Don't reset last_mode_change_time in this case
-            }
-            else
-            {
-              last_mode_change_time=millis();
-            }
+            Serial.println("Turning on " + (String)devs[n]);
+            mode = (Mode)n;
           }
         }
+
+        switch(mode)
+        {
+          case Mode::intruders:
+            ramp_time=2000.0f;
+            break;
+          case Mode::party:
+            ramp_time=7000.0f;
+            break;
+          case Mode::take_the_prize:
+            ramp_time=0.0f;
+          case Mode::victory_glow:
+            ramp_time=20000.0f;
+            break;
+          default:
+            ramp_time=2000.0f;
+            break;
+        }
       }
+      last_mode_change_time=millis();
   });
 
   // Wait for connection
@@ -171,6 +180,7 @@ void loop() {
 
   float ramp = ((float)(current_time-last_mode_change_time))/ramp_time;
   if(ramp>1.0f){ramp=1.0f;}
+  //else(Serial.println("Ramping at " + (String)(MAX_BYTE*ramp)));
   FastLED.setBrightness(MAX_BYTE*ramp);
   //Serial.println("Brightness is " + (String)(MAX_BYTE*ramp));
 
