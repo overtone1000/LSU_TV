@@ -21,12 +21,12 @@ ESP8266WebServer httpRestServer(HTTP_REST_PORT);
 CRGB leds[NUM_LEDS];
 //LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,15,false);
 //LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,30,16,true);
-LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,29,false);
-LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,29,0,true);
+LEDGraphics::LEDSet2D ledset_1(leds,NUM_LEDS,0,NUM_LEDS-1,false);
+LEDGraphics::LEDSet2D ledset_2(leds,NUM_LEDS,NUM_LEDS-1,0,true);
 
-LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,29,20,true);
-LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,19,10,true);
-LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,9,0,true);
+LEDGraphics::LEDSet2D ledset_m1(leds,NUM_LEDS,NUM_LEDS-1,NUM_LEDS*2/3,true);
+LEDGraphics::LEDSet2D ledset_m2(leds,NUM_LEDS,NUM_LEDS*2/3-1,NUM_LEDS/3,true);
+LEDGraphics::LEDSet2D ledset_m3(leds,NUM_LEDS,NUM_LEDS/3-1,0,true);
 
 const char* dev_gotigers = "Go Tigers";
 const char* dev_merica = "Merica";
@@ -41,8 +41,8 @@ enum Mode
   goblet_blaze=5
 };
 
-Mode mode = tigers;
-bool showleds = false;
+Mode mode = sr_message;
+bool showleds = true;
 
 void restServerRouting() {
   httpRestServer.on("/goblet_simmer", HTTP_GET, []() {
@@ -169,7 +169,7 @@ void loop() {
   }
 
   FastLED.show();
-  delay(100);
+  //delay(100); //This delay was screwing up timing!
 
-  Serial.println("Looped. Millis:" + (String)current_time);
+  //Serial.println("Looped. Millis:" + (String)current_time);
 }

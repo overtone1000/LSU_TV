@@ -21,6 +21,7 @@ namespace LEDGraphics
     {
       (*pixel)[n]=color[n]*magnitude + (*pixel)[n]*(1.0f-magnitude);
     }
+    //Serial.println("Painted " + (String)((*pixel)[0]) + "," + (String)((*pixel)[1]) + "," + (String)((*pixel)[2]));
   }
 
   void AddBrush::paint(CRGB* pixel)
@@ -36,7 +37,6 @@ namespace LEDGraphics
       {
         (*pixel)[n]=res;
       }
-      
     }
   }
 
@@ -189,7 +189,7 @@ namespace LEDGraphics
   {
     float along = this->this_along+this->along_init;
     float retval = along-floor(along);
-    Serial.println("Current along is " + (String)(retval));
+    //Serial.println("Current along is " + (String)(retval));
     return retval;
   }
 
@@ -222,7 +222,7 @@ namespace LEDGraphics
       uint8_t total_angle = this->CurrentAngle()+add_angle;
       uint8_t brightness = cos8(total_angle);
       float final_magnitude = ((float)brightness/(float)MAX_BYTE)*this->magnitude;
-      //Serial.println("Final magnitude is " + (String)final_magnitude);
+      //if(n==0){Serial.println("Final magnitude is " + (String)final_magnitude);}
       brush->SetMagnitude(final_magnitude);
       brush->paint(led_set->ledArray()[n]);
     }
