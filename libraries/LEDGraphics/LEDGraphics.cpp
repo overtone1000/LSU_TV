@@ -189,7 +189,7 @@ namespace LEDGraphics
   {
     float along = this->this_along+this->along_init;
     float retval = along-floor(along);
-    //Serial.println("Current along is " + (String)(retval));
+    Serial.println("Current along is " + (String)(retval));
     return retval;
   }
 

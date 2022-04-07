@@ -1,9 +1,8 @@
 #include <ESP8266WiFi.h>
+#include <fauxmoESP.h>
 #include "WiFiCredentials.h"
 
-#include <ESP8266WebServer.h>
-#define HTTP_REST_PORT 80
-ESP8266WebServer httpRestServer(HTTP_REST_PORT);
+fauxmoESP fauxmo;
 
 #define FASTLED_ESP8266_RAW_PIN_ORDER
 #include "LEDGraphics.h"
@@ -36,45 +35,11 @@ enum Mode
 {
   tigers=1,
   merica=2,
-  sr_message=3,
-  goblet_simmer=4,
-  goblet_blaze=5
+  sr_message=3
 };
 
 Mode mode = tigers;
 bool showleds = false;
-
-void restServerRouting() {
-  httpRestServer.on("/goblet_simmer", HTTP_GET, []() {
-    showleds=true;
-    mode=goblet_simmer;
-    httpRestServer.send(200);
-  });
-  httpRestServer.on("/goblet_blaze", HTTP_GET, []() {
-    showleds=true;
-    mode=goblet_blaze;
-    httpRestServer.send(200);
-  });
-  httpRestServer.on("/tigers", HTTP_GET, []() {
-    showleds=true;
-    mode=tigers;
-    httpRestServer.send(200);
-  });
-  httpRestServer.on("/america", HTTP_GET, []() {
-    showleds=true;
-    mode=merica;
-    httpRestServer.send(200);
-  });
-  httpRestServer.on("/shera", HTTP_GET, []() {
-    showleds=true;
-    mode=sr_message;
-    httpRestServer.send(200);
-  });
-  httpRestServer.on("/off", HTTP_GET, []() {
-    showleds=false;
-    httpRestServer.send(200);
-  });
-}
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -94,12 +59,33 @@ void setup() {
   FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(60);
 
-  Serial.println("Configuring restful endpoint");
-  
-  restServerRouting();
-  httpRestServer.begin();
+  Serial.println("Configuring Fauxmo");
+  //fauxmo.addDevice(dev_gotigers);
+  //fauxmo.addDevice(dev_merica);
+  fauxmo.addDevice(dev_sheramessage);
 
-  // Wait for connection
+  fauxmo.setPort(80); // required for gen3 devices
+  fauxmo.enable(true);
+
+  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {      
+      showleds=state;
+      Serial.println("Received onSetState." + (String)device_id + (String)device_name + (String)state + (String)value);
+      if(strcmp(device_name,dev_gotigers)==0)
+      {
+        mode=Mode::tigers;
+      }
+      else if(strcmp(device_name,dev_merica)==0)
+      {
+        mode=Mode::merica;
+      }
+      else if(strcmp(device_name,dev_sheramessage)==0)
+      {
+        mode=Mode::sr_message;
+      }
+      Serial.println("Device " + (String)device_name + " is " + (String)state);
+  });
+
+    // Wait for connection
   Serial.println("Waiting for WiFi.");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -123,7 +109,7 @@ LEDGraphics::BlendBrush white(CRGB::White,1.0f);
 LEDGraphics::BlendBrush blue(CRGB::Blue,1.0f);
 
 void loop() {
-  httpRestServer.handleClient();
+  fauxmo.handle();
 
   unsigned long current_time = millis();
 
@@ -137,6 +123,7 @@ void loop() {
     switch(mode)
     {
       case Mode::tigers:
+        Serial.println("Showing tigers...");
         w1.UpdateAlong(current_time);
         w2.UpdateAlong(current_time);
         w1.Paint(&ledset_1,&yellow); 
@@ -160,16 +147,13 @@ void loop() {
         m3.UpdateAlong(current_time);
         m1.Paint(&ledset_m1,&blue); 
         m2.Paint(&ledset_m2,&blue); 
-        m3.Paint(&ledset_m3,&blue);
-        break;
-      default:
-        break;
+        m3.Paint(&ledset_m3,&blue); 
     }
+
+
     //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);
   }
 
   FastLED.show();
   delay(100);
-
-  Serial.println("Looped. Millis:" + (String)current_time);
 }
