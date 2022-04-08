@@ -40,7 +40,7 @@ enum Mode
   goblet_simmer=4
 };
 
-Mode mode = sr_message;
+Mode mode = goblet_simmer;
 bool showleds = false;
 
 unsigned long goblet_blaze_start=0;
@@ -123,18 +123,22 @@ LEDGraphics::BlendBrush red(CRGB::Red,1.0f);
 LEDGraphics::BlendBrush white(CRGB::White,1.0f);
 LEDGraphics::BlendBrush blue(CRGB::Blue,1.0f);
 
-const CRGB fire1=CRGB(239,205,103); //light yellow
-const CRGB fire2=CRGB(219,147,19); //burnt orange
-const CRGB fire3=CRGB(211,101,16); //dark orange
+
+const CRGB fire1=CRGB::DarkOrange; //CRGB(209,76,50); //light yellow
+const CRGB fire2=CRGB::DarkRed; //burnt orange
+const CRGB fire3=CRGB::OrangeRed; //(211,101,16); //dark orange
 
 const CRGB blaze1=CRGB(114,254,46); //purple
 const CRGB blaze2=CRGB(16,26,211); //blue
 const CRGB blaze3=CRGB(16,208,211); //cyan
 
 
-const unsigned long goblet_blaze_fade_in=200;
-const unsigned long goblet_blaze_stay=5000;
+const unsigned long goblet_blaze_fade_in=1000;
+const unsigned long goblet_blaze_stay=1000;
 const unsigned long goblet_blaze_fade_out=3000;
+
+#define FIREFLICKERTIMEARRAYSIZE 3
+const unsigned long fire_flicker_t[FIREFLICKERTIMEARRAYSIZE] = {25,100,250};
 
 void loop() {
   httpRestServer.handleClient();
@@ -177,6 +181,7 @@ void loop() {
         m3.Paint(&ledset_m3,&blue);
         break;
       case Mode::goblet_simmer:
+        
         LEDGraphics::BlendBrush final_fire1(fire1,1.0);
         LEDGraphics::BlendBrush final_fire2(fire2,1.0);
         LEDGraphics::BlendBrush final_fire3(fire3,1.0);
@@ -198,12 +203,25 @@ void loop() {
         final_fire2.blendOver(blaze2,blaze_alpha);
         final_fire3.blendOver(blaze3,blaze_alpha);
 
+        //Flickering fire effect
+        float fire_flicker_magnitude=1.0f-(blaze_alpha/2.0f); //Don't flicker as much during blaze
+        for(int n=0;n<FIREFLICKERTIMEARRAYSIZE;n++)
+        {
+          fire_flicker_magnitude*=sin(current_time/fire_flicker_t[n])/2.0f+1.0f;
+        }
+        fire_flicker_magnitude=0.6f*(1.0-fire_flicker_magnitude);
+        final_fire1.fadeLightBy(fire_flicker_magnitude);
+        final_fire2.fadeLightBy(fire_flicker_magnitude);
+        final_fire3.fadeLightBy(fire_flicker_magnitude);
+
+        /*
         Serial.print("Blaze alpha=" + (String)blaze_alpha);
         Serial.print(" ");
         Serial.print("Blaze start="+ (String)goblet_blaze_start);
         Serial.print(" ");
         Serial.print("Blaze time="+ (String)blaze_time);
         Serial.println();
+        */
 
         m1.UpdateAlong(current_time);
         m2.UpdateAlong(current_time);

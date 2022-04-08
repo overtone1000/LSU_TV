@@ -15,6 +15,13 @@ namespace LEDGraphics
     //+","+(String)this->color.b);
   }
 
+  void Brush::fadeLightBy(float factor)
+  {
+    if(factor>1.0f){factor=1.0f;}
+    else if(factor<0.0f){factor=0.0f;}
+    this->color.fadeLightBy(factor*255);
+  }
+
   void BlendBrush::paint(CRGB* pixel)
   {
     for(int n=0;n<3;n++)

@@ -14,6 +14,7 @@ namespace LEDGraphics
   public:
     Brush(CRGB color);
     void changeColor(CRGB color);
+    void fadeLightBy(float factor);
     void randomizeColor();
     virtual void paint(CRGB* pixel)=0;
   protected:
