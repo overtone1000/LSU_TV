@@ -37,12 +37,13 @@ enum Mode
   tigers=1,
   merica=2,
   sr_message=3,
-  goblet_simmer=4,
-  goblet_blaze=5
+  goblet_simmer=4
 };
 
 Mode mode = sr_message;
-bool showleds = true;
+bool showleds = false;
+
+unsigned long goblet_blaze_start=0;
 
 void restServerRouting() {
   httpRestServer.on("/goblet_simmer", HTTP_GET, []() {
@@ -51,8 +52,8 @@ void restServerRouting() {
     httpRestServer.send(200);
   });
   httpRestServer.on("/goblet_blaze", HTTP_GET, []() {
-    showleds=true;
-    mode=goblet_blaze;
+    Serial.println("Goblet blaze");
+    goblet_blaze_start=millis();
     httpRestServer.send(200);
   });
   httpRestServer.on("/tigers", HTTP_GET, []() {
@@ -122,6 +123,19 @@ LEDGraphics::BlendBrush red(CRGB::Red,1.0f);
 LEDGraphics::BlendBrush white(CRGB::White,1.0f);
 LEDGraphics::BlendBrush blue(CRGB::Blue,1.0f);
 
+const CRGB fire1=CRGB(239,205,103); //light yellow
+const CRGB fire2=CRGB(219,147,19); //burnt orange
+const CRGB fire3=CRGB(211,101,16); //dark orange
+
+const CRGB blaze1=CRGB(114,254,46); //purple
+const CRGB blaze2=CRGB(16,26,211); //blue
+const CRGB blaze3=CRGB(16,208,211); //cyan
+
+
+const unsigned long goblet_blaze_fade_in=200;
+const unsigned long goblet_blaze_stay=5000;
+const unsigned long goblet_blaze_fade_out=3000;
+
 void loop() {
   httpRestServer.handleClient();
 
@@ -162,7 +176,41 @@ void loop() {
         m2.Paint(&ledset_m2,&blue); 
         m3.Paint(&ledset_m3,&blue);
         break;
-      default:
+      case Mode::goblet_simmer:
+        LEDGraphics::BlendBrush final_fire1(fire1,1.0);
+        LEDGraphics::BlendBrush final_fire2(fire2,1.0);
+        LEDGraphics::BlendBrush final_fire3(fire3,1.0);
+        float blaze_alpha = 0;
+        unsigned long blaze_time=current_time-goblet_blaze_start;
+        if(blaze_time<=goblet_blaze_fade_in)
+        {
+          blaze_alpha=(float)blaze_time/(float)goblet_blaze_fade_in;
+        }
+        else if(blaze_time<=goblet_blaze_fade_in+goblet_blaze_stay)
+        {
+          blaze_alpha=1;
+        }
+        else if(blaze_time<=goblet_blaze_fade_in+goblet_blaze_stay+goblet_blaze_fade_out)
+        {
+          blaze_alpha=1.0f-(float)(blaze_time-goblet_blaze_fade_in-goblet_blaze_stay)/(float)goblet_blaze_fade_out;
+        }
+        final_fire1.blendOver(blaze1,blaze_alpha);
+        final_fire2.blendOver(blaze2,blaze_alpha);
+        final_fire3.blendOver(blaze3,blaze_alpha);
+
+        Serial.print("Blaze alpha=" + (String)blaze_alpha);
+        Serial.print(" ");
+        Serial.print("Blaze start="+ (String)goblet_blaze_start);
+        Serial.print(" ");
+        Serial.print("Blaze time="+ (String)blaze_time);
+        Serial.println();
+
+        m1.UpdateAlong(current_time);
+        m2.UpdateAlong(current_time);
+        m3.UpdateAlong(current_time);
+        m1.Paint(&ledset_m1,&final_fire1); 
+        m2.Paint(&ledset_m2,&final_fire2); 
+        m3.Paint(&ledset_m3,&final_fire3);
         break;
     }
     //ledset.paint_wave(current_time,start_millis,wave_start_mid,wave_speed,wave_width,CRGB::Yellow);

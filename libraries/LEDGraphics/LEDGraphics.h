@@ -34,6 +34,11 @@ namespace LEDGraphics
   {
   public:
     BlendBrush(CRGB color, float alpha):MagnitudeBrush(color,alpha){}
+    void blendOver(CRGB color, float alpha){
+      this->color.r=this->color.r*(1.0-alpha)+color.r*alpha;
+      this->color.g=this->color.g*(1.0-alpha)+color.g*alpha;
+      this->color.b=this->color.b*(1.0-alpha)+color.b*alpha;
+    }
     virtual void paint(CRGB* pixel);
   };
 
